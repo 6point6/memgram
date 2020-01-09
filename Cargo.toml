@@ -1,0 +1,8 @@
+[package]
+name = "mem-gram"
+version = "0.1.0"
+authors = ["kurome"]
+edition = "2018"
+
+[dependencies]
+hexplay = "0.2.1"
