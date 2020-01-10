@@ -4,26 +4,24 @@ use std::path::Path;
 
 #[derive(PartialEq)]
 pub enum CMDParseResult {
-    BinaryNotSpecified,
     FileNotFound,
     FilePathNotSpecified,
-    FileNotSpecified,
     FileFound,
     Success,
 }
 
 pub fn check_mandatory_cmds(cmdline_hashmap: &mut HashMap<String, Option<String>>) -> CMDParseResult {
-    let check_result: CMDParseResult = check_cmd_and_file_exists(cmdline_hashmap,"-g");
+    let cmd_parse_result: CMDParseResult = check_cmd_and_file_exists(cmdline_hashmap,"-g");
 
-    if check_result != CMDParseResult::FileFound {
-        return check_result;
+    if cmd_parse_result != CMDParseResult::FileFound {
+        return cmd_parse_result;
     }else {
     }
 
-    let check_result: CMDParseResult = check_cmd_and_file_exists(cmdline_hashmap,"-b");
+    let cmd_parse_result: CMDParseResult = check_cmd_and_file_exists(cmdline_hashmap,"-b");
 
-    if check_result != CMDParseResult::Success {
-        return check_result;
+    if cmd_parse_result != CMDParseResult::FileFound {
+        return cmd_parse_result;
     }else {
     }
 
@@ -35,11 +33,11 @@ pub fn check_cmd_and_file_exists(
     cmdline_hashmap: &mut HashMap<String, Option<String>>, key: &str 
 ) -> CMDParseResult {
     match cmdline_hashmap.contains_key(key) {
-        true => match cmdline_hashmap.get(key) {
-            Some(entry) => match Path::new(entry.as_ref().unwrap()).exists() {
+        true => match cmdline_hashmap.get(key).unwrap() {
+            Some(entry) => match Path::new(entry).exists() {
                 true => return CMDParseResult::FileFound,
                 false => {
-                    eprintln!("Error: Could not find file {:#?}",entry.as_ref().unwrap());
+                    eprintln!("Error: Could not find file {:#?}",entry);
                     return CMDParseResult::FileNotFound
                 }
             },
