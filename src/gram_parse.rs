@@ -20,25 +20,20 @@ const OFFSET_FLAG: &str = "-o";
 pub const ERROR_START: &str = "[-] Error:";
 
 pub fn check_mandatory_cmds(cmdline_hashmap: &mut HashMap<String, Option<String>>) -> CMDParseResult {
-    let cmd_parse_result: CMDParseResult = check_flag_and_file_exists(cmdline_hashmap,GRAMMER_FILE_FLAG);
 
-    if cmd_parse_result != CMDParseResult::FileFound {
-        return cmd_parse_result;
-    }else {
+    match check_flag_and_file_exists(cmdline_hashmap,GRAMMER_FILE_FLAG) {
+        CMDParseResult::FileFound => (),
+        cmd_parse_result @ _ => return cmd_parse_result
     }
 
-    let cmd_parse_result = check_flag_and_file_exists(cmdline_hashmap,BINARY_FILE_FLAG);
-
-    if cmd_parse_result != CMDParseResult::FileFound {
-        return cmd_parse_result;
-    }else {
+    match check_flag_and_file_exists(cmdline_hashmap, BINARY_FILE_FLAG) {
+        CMDParseResult::FileFound => (),
+        cmd_parse_result @ _ => return cmd_parse_result
     }
 
-    let cmd_parse_result = check_flag_and_value_exists(cmdline_hashmap, OFFSET_FLAG);
-
-    if cmd_parse_result != CMDParseResult::OffsetFlagExists {
-        return cmd_parse_result;
-    } else {
+    match check_flag_and_value_exists(cmdline_hashmap, OFFSET_FLAG) {
+        CMDParseResult::OffsetFlagExists => (),
+        cmd_parse_result @ _ => return cmd_parse_result
     }
 
     return CMDParseResult::Success;
