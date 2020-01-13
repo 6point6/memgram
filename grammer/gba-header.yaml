@@ -2,6 +2,7 @@ Name: 'GBA-Cartridge-Header'
 Meta-Info:
   Fixed-Length: 'Yes'
   Size: 0xC0
+  Endian: Big
 Fields:
   ROM-Entry-Point:
     Size: 4
