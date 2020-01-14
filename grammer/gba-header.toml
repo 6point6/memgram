@@ -1,0 +1,16 @@
+[metadata]
+name = 'GBA-Cartridge-Header'
+fixed_size = true
+size = 192
+big_endian = false
+
+[fields]
+    [fields.rom-entry]
+    size = 4
+    display_format = 'hex'
+    description = '(32bit ARM branch opcode, eg. B rom_start)'
+
+    [fields.nintendo-logo]
+    size = 156
+    display_format = 'hex'
+    description = 'Compressed Nintendo logo bitmap'

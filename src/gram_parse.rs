@@ -3,6 +3,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 use std::path::Path;
+use toml::Value;
+use serde::{Deserialize};
 
 #[derive(PartialEq)]
 pub enum CMDParseResult {
@@ -15,11 +17,44 @@ pub enum CMDParseResult {
     Success,
 }
 
+#[derive(Deserialize)]
+struct Grammer {
+    name: String,
+    metadata: GrammerMetadata,
+    fields: Vec<GrammerField>
+}
+
+#[derive(Deserialize)]
+struct GrammerMetadata {
+    name: String,
+    fixed_size: bool,
+    size: u32,
+    endian: bool
+}
+
+#[derive(Deserialize)]
+struct GrammerField {
+    size: u32,
+    display_format: String,
+    description: String
+}
+
 pub const GRAMMER_FILE_FLAG: &str = "-g";
 pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
 
 pub const ERROR_START: &str = "[-] Error:";
+
+// pub fn parse_grammer(gram_parsed: &Grammer) 
+
+// let gram_file_contents: String =
+//         match cmdline_hashmap.get(gram_parse::GRAMMER_FILE_FLAG).unwrap() {
+//             Some(path) => match fs::read_to_string(path) {
+//                 Ok(file) => file,
+//                 Err(error) => panic!("[-] Error opening file: {}", error),
+//             },
+//             None => panic!("[-] No value for {} flag", gram_parse::GRAMMER_FILE_FLAG),
+//         };
 
 pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_offset: u64) {
     let mut binary_file = match File::open(binary_path) {
@@ -43,8 +78,6 @@ pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_
             struct_offset, binary_path, binary_file_end_offset
         );
     }
-
-    
 
 }
 
