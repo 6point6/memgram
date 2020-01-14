@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub enum ArgParseResult {
     NoArguments,
     Success,
@@ -8,10 +9,10 @@ pub enum ArgParseResult {
 pub fn parse_cmdline_args(
     args: Vec<String>,
     cmdline_hashmap: &mut HashMap<String, Option<String>>,
-) -> ArgParseResult {
+) -> Result<ArgParseResult, ArgParseResult> {
     match args.len() {
         1 => {
-            return ArgParseResult::NoArguments;
+            return Err(ArgParseResult::NoArguments);
         }
         _ => {
             for (index, value) in args.iter().enumerate() {
@@ -24,7 +25,7 @@ pub fn parse_cmdline_args(
                     }
                 }
             }
-            return ArgParseResult::Success;
+            return Ok(ArgParseResult::Success);
         }
     }
 }

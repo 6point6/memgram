@@ -16,13 +16,13 @@ fn main() {
     let mut cmdline_hashmap: HashMap<String, Option<String>> = HashMap::new();
 
     match arg_parse::parse_cmdline_args(args, &mut cmdline_hashmap) {
-        arg_parse::ArgParseResult::Success => (),
-        cmdline_parse_result @ _ => usage_and_exit(cmdline_parse_result as i32),
+        Ok(arg_parse::ArgParseResult::Success) => (),
+        cmdline_parse_result @ _ => usage_and_exit(Err(cmdline_parse_result).unwrap()),
     };
 
     match gram_parse::check_mandatory_cmds(&mut cmdline_hashmap) {
-        gram_parse::CMDParseResult::Success => (),
-        binary_parse_result @ _ => usage_and_exit(binary_parse_result as i32),
+        Ok(gram_parse::ParseResult::Success) => (),
+        binary_parse_result @ _ => usage_and_exit(Err(binary_parse_result).unwrap()),
     };
 
     let gram_file_contents: String =
@@ -48,7 +48,7 @@ fn main() {
         None => panic!("[-] No value for {} flag", gram_parse::OFFSET_FLAG),
     };
 
-    gram_parse::print_hex_gram(&gram_file_contents, &binary_file_path, struct_offset);
+    let i = gram_parse::print_hex_gram(&gram_file_contents, &binary_file_path, struct_offset);
 
     // }
 }

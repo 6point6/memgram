@@ -1,17 +1,19 @@
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 use std::path::Path;
 use toml::Value;
-use serde::{Deserialize};
 
-#[derive(PartialEq)]
-pub enum CMDParseResult {
+#[derive(PartialEq, Debug)]
+pub enum ParseResult {
+    FlagNotSpecified,
+    OffsetToLarge,
+    SeekError,
+    OpenFileError,
     FileNotFound,
     FilePathNotSpecified,
-    FileFound,
-    OffsetFlagExists,
     OffsetNotSpecified,
     OffsetFlagNotSpecified,
     Success,
@@ -20,7 +22,7 @@ pub enum CMDParseResult {
 #[derive(Deserialize, Debug)]
 pub struct Grammer {
     metadata: GrammerMetadata,
-    fields: Vec<GrammerField>
+    fields: Vec<GrammerField>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -28,7 +30,7 @@ pub struct GrammerMetadata {
     name: String,
     fixed_size: bool,
     size: u32,
-    big_endian: bool
+    big_endian: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -36,7 +38,7 @@ pub struct GrammerField {
     name: String,
     size: u32,
     display_format: String,
-    description: String
+    description: String,
 }
 
 pub const GRAMMER_FILE_FLAG: &str = "-g";
@@ -45,20 +47,27 @@ pub const OFFSET_FLAG: &str = "-o";
 
 pub const ERROR_START: &str = "[-] Error:";
 
-pub fn parse_grammer(gram_file_contents: &String) -> Grammer {
-    let gram_parsed: Grammer = match toml::from_str(gram_file_contents) {
-        Ok(gram) => gram,
-        Err(error) => panic!("{} failed to parse grammer file {}",ERROR_START,error)
-    };
+pub fn parse_grammer(gram_file_contents: &String) -> Option<Grammer> {
+    match toml::from_str(gram_file_contents) {
+        Ok(gram) => return Some(gram),
+        Err(error) => {
+            eprintln!("{} failed to parse grammer file {}", ERROR_START, error);
+            return None;
+        }
+    }
+}
 
-    return gram_parsed
-} 
-
-
-pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_offset: u64) {
+pub fn print_hex_gram(
+    gram_file_contents: &String,
+    binary_path: &String,
+    struct_offset: u64,
+) -> Result<ParseResult, ParseResult> {
     let mut binary_file = match File::open(binary_path) {
         Ok(file) => file,
-        Err(error) => panic!("{} opening file {}: {}",ERROR_START, binary_path, error),
+        Err(error) => {
+            eprintln!("{} opening file {}: {}", ERROR_START, binary_path, error);
+            return Err(ParseResult::OpenFileError);
+        }
     };
 
     let binary_file_end_offset = binary_file.seek(SeekFrom::End(0)).unwrap();
@@ -66,54 +75,57 @@ pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_
     if binary_file_end_offset >= struct_offset {
         match binary_file.seek(SeekFrom::Start(struct_offset)) {
             Ok(offset) => (),
-            Err(error) => panic!(
-                "{} seeking to offset in file {}: {}",ERROR_START ,
-                binary_path, error
-            ),
+            Err(error) => {
+                eprintln!(
+                    "{} seeking to offset in file {}: {}",
+                    ERROR_START, binary_path, error
+                );
+                return Err(ParseResult::SeekError);
+            }
         }
     } else {
-        panic!(
-            "{} provided offset {} is larger than size of file {}: {}", ERROR_START ,
-            struct_offset, binary_path, binary_file_end_offset
+        eprintln!(
+            "{} provided offset {} is larger than size of file {}: {}",
+            ERROR_START, struct_offset, binary_path, binary_file_end_offset
         );
+        return Err(ParseResult::OffsetToLarge);
     }
 
+    return Ok(ParseResult::Success);
 }
 
-pub fn check_mandatory_cmds(
-    cmdline_hashmap: &mut HashMap<String, Option<String>>,
-) -> CMDParseResult {
+pub fn check_mandatory_cmds(cmdline_hashmap: &mut HashMap<String, Option<String>>) -> Result<ParseResult,ParseResult> {
     match check_flag_and_file_exists(cmdline_hashmap, GRAMMER_FILE_FLAG) {
-        CMDParseResult::FileFound => (),
+        Ok(ParseResult::Success) => (),
         cmd_parse_result @ _ => return cmd_parse_result,
     }
 
     match check_flag_and_file_exists(cmdline_hashmap, BINARY_FILE_FLAG) {
-        CMDParseResult::FileFound => (),
+        Ok(ParseResult::Success) => (),
         cmd_parse_result @ _ => return cmd_parse_result,
     }
 
     match check_flag_and_value_exists(cmdline_hashmap, OFFSET_FLAG) {
-        CMDParseResult::OffsetFlagExists => (),
+        Ok(ParseResult::Success) => (),
         cmd_parse_result @ _ => return cmd_parse_result,
     }
 
-    return CMDParseResult::Success;
+    return Ok(ParseResult::Success);
 }
 
 fn check_flag_and_value_exists(
     cmdline_hashmap: &mut HashMap<String, Option<String>>,
     key: &str,
-) -> CMDParseResult {
+) -> Result<ParseResult, ParseResult> {
     match cmdline_hashmap.contains_key(key) {
         true => match cmdline_hashmap.get(key).unwrap() {
-            Some(entry) => return CMDParseResult::OffsetFlagExists,
+            Some(entry) => return Ok(ParseResult::Success),
             None => {
                 eprintln!(
                     "{} You need to specify an offset into the binary file",
                     ERROR_START
                 );
-                return CMDParseResult::OffsetNotSpecified;
+                return Err(ParseResult::OffsetNotSpecified);
             }
         },
         false => {
@@ -121,7 +133,7 @@ fn check_flag_and_value_exists(
                 "{} You need to specify the offset flag {}",
                 ERROR_START, OFFSET_FLAG
             );
-            return CMDParseResult::OffsetFlagNotSpecified;
+            return Err(ParseResult::OffsetFlagNotSpecified);
         }
     }
 }
@@ -129,14 +141,14 @@ fn check_flag_and_value_exists(
 fn check_flag_and_file_exists(
     cmdline_hashmap: &mut HashMap<String, Option<String>>,
     key: &str,
-) -> CMDParseResult {
+) -> Result<ParseResult, ParseResult> {
     match cmdline_hashmap.contains_key(key) {
         true => match cmdline_hashmap.get(key).unwrap() {
             Some(entry) => match Path::new(entry).exists() {
-                true => return CMDParseResult::FileFound,
+                true => return Ok(ParseResult::Success),
                 false => {
                     eprintln!("{} Could not find file {:#?}", ERROR_START, entry);
-                    return CMDParseResult::FileNotFound;
+                    return Err(ParseResult::FileNotFound);
                 }
             },
             None => {
@@ -144,12 +156,12 @@ fn check_flag_and_file_exists(
                     "{} You need to specify a value for flag {}",
                     ERROR_START, key
                 );
-                return CMDParseResult::FilePathNotSpecified;
+                return Err(ParseResult::FilePathNotSpecified);
             }
         },
         false => {
             eprintln!("{} You need to specify the flag {}", ERROR_START, key);
-            return CMDParseResult::FilePathNotSpecified;
+            return Err(ParseResult::FlagNotSpecified);
         }
     }
 }
