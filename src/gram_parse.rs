@@ -17,23 +17,23 @@ pub enum CMDParseResult {
     Success,
 }
 
-#[derive(Deserialize)]
-struct Grammer {
-    name: String,
+#[derive(Deserialize, Debug)]
+pub struct Grammer {
     metadata: GrammerMetadata,
     fields: Vec<GrammerField>
 }
 
-#[derive(Deserialize)]
-struct GrammerMetadata {
+#[derive(Deserialize, Debug)]
+pub struct GrammerMetadata {
     name: String,
     fixed_size: bool,
     size: u32,
-    endian: bool
+    big_endian: bool
 }
 
-#[derive(Deserialize)]
-struct GrammerField {
+#[derive(Deserialize, Debug)]
+pub struct GrammerField {
+    name: String,
     size: u32,
     display_format: String,
     description: String
@@ -45,21 +45,20 @@ pub const OFFSET_FLAG: &str = "-o";
 
 pub const ERROR_START: &str = "[-] Error:";
 
-// pub fn parse_grammer(gram_parsed: &Grammer) 
+pub fn parse_grammer(gram_file_contents: &String) -> Grammer {
+    let gram_parsed: Grammer = match toml::from_str(gram_file_contents) {
+        Ok(gram) => gram,
+        Err(error) => panic!("{} failed to parse grammer file {}",ERROR_START,error)
+    };
 
-// let gram_file_contents: String =
-//         match cmdline_hashmap.get(gram_parse::GRAMMER_FILE_FLAG).unwrap() {
-//             Some(path) => match fs::read_to_string(path) {
-//                 Ok(file) => file,
-//                 Err(error) => panic!("[-] Error opening file: {}", error),
-//             },
-//             None => panic!("[-] No value for {} flag", gram_parse::GRAMMER_FILE_FLAG),
-//         };
+    return gram_parsed
+} 
+
 
 pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_offset: u64) {
     let mut binary_file = match File::open(binary_path) {
         Ok(file) => file,
-        Err(error) => panic!("[-] Error opening file {}: {}", binary_path, error),
+        Err(error) => panic!("{} opening file {}: {}",ERROR_START, binary_path, error),
     };
 
     let binary_file_end_offset = binary_file.seek(SeekFrom::End(0)).unwrap();
@@ -68,13 +67,13 @@ pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_
         match binary_file.seek(SeekFrom::Start(struct_offset)) {
             Ok(offset) => (),
             Err(error) => panic!(
-                "[-] Error: seeking to offset in file {}: {}",
+                "{} seeking to offset in file {}: {}",ERROR_START ,
                 binary_path, error
             ),
         }
     } else {
         panic!(
-            "[-] Error: provided offset {} is larger than size of file {}: {}",
+            "{} provided offset {} is larger than size of file {}: {}", ERROR_START ,
             struct_offset, binary_path, binary_file_end_offset
         );
     }

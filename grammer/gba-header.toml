@@ -4,13 +4,16 @@ fixed_size = true
 size = 192
 big_endian = false
 
-[fields]
-    [fields.rom-entry]
+[[fields]]
+    name = "ARM branch opcode"
+    offset = 0
     size = 4
     display_format = 'hex'
     description = '(32bit ARM branch opcode, eg. B rom_start)'
 
-    [fields.nintendo-logo]
+[[fields]]
+    name = "Nintendo logo"
+    offset = 4
     size = 156
     display_format = 'hex'
     description = 'Compressed Nintendo logo bitmap'
