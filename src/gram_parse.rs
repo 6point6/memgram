@@ -1,4 +1,7 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::SeekFrom;
 use std::path::Path;
 
 #[derive(PartialEq)]
@@ -17,6 +20,33 @@ pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
 
 pub const ERROR_START: &str = "[-] Error:";
+
+pub fn print_hex_gram(gram_file_contents: &String, binary_path: &String, struct_offset: u64) {
+    let mut binary_file = match File::open(binary_path) {
+        Ok(file) => file,
+        Err(error) => panic!("[-] Error opening file {}: {}", binary_path, error),
+    };
+
+    let binary_file_end_offset = binary_file.seek(SeekFrom::End(0)).unwrap();
+
+    if binary_file_end_offset >= struct_offset {
+        match binary_file.seek(SeekFrom::Start(struct_offset)) {
+            Ok(offset) => (),
+            Err(error) => panic!(
+                "[-] Error: seeking to offset in file {}: {}",
+                binary_path, error
+            ),
+        }
+    } else {
+        panic!(
+            "[-] Error: provided offset {} is larger than size of file {}: {}",
+            struct_offset, binary_path, binary_file_end_offset
+        );
+    }
+
+    
+
+}
 
 pub fn check_mandatory_cmds(
     cmdline_hashmap: &mut HashMap<String, Option<String>>,
