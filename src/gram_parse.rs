@@ -1,15 +1,20 @@
+use hex::ToHex;
+use prettytable::{Cell, Row, Table};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 use std::path::Path;
-use toml::Value;
+use ascii::AsciiString;
 
 #[derive(PartialEq, Debug)]
 pub enum ParseResult {
+    GrammerParseFail,
+    FillingHashMapFail,
     FlagNotSpecified,
     OffsetToLarge,
+    FieldValueEmpty,
     SeekError,
     OpenFileError,
     FileNotFound,
@@ -29,14 +34,16 @@ pub struct Grammer {
 pub struct GrammerMetadata {
     name: String,
     fixed_size: bool,
-    size: u32,
+    size: usize,
     big_endian: bool,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct GrammerField {
     name: String,
-    size: u32,
+    offset: i64,
+    size: usize,
+    data_type: String,
     display_format: String,
     description: String,
 }
@@ -44,6 +51,8 @@ pub struct GrammerField {
 pub const GRAMMER_FILE_FLAG: &str = "-g";
 pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
+
+pub const ASCII_TYPE: &str = "ascii";
 
 pub const ERROR_START: &str = "[-] Error:";
 
@@ -55,6 +64,68 @@ pub fn parse_grammer(gram_file_contents: &String) -> Option<Grammer> {
             return None;
         }
     }
+}
+
+fn print_filled_table(
+    parsed_gram: &Grammer,
+    field_hashmap: &HashMap<String, Vec<u8>>,
+) -> Result<ParseResult, ParseResult> {
+    let mut table = Table::new();
+
+    table.add_row(row!["Field", "Offset", "Size","Data Type", "Raw Data","Formatted Data", "Description"]);
+
+    for (index, field) in parsed_gram.fields.iter().enumerate() {
+        let mut hex_string: String = match field_hashmap.get(&field.name) {
+            Some(raw_data) => raw_data.encode_hex::<String>(),
+            None => return Err(ParseResult::FieldValueEmpty),
+        };
+    
+        if hex_string.len() > 40 {
+            hex_string = hex_string[..40].to_string();
+            hex_string.push_str("...");
+        }
+
+        let mut formatted_data: String = match field_hashmap.get(&field.name) {
+            Some(raw_data) => match &field.display_format[..] {
+                ASCII_TYPE => raw_data.into_iter().map(|ascii| *ascii as char).collect(),
+                _ => String::from("N/A")
+            }
+            None => return Err(ParseResult::FieldValueEmpty)
+        };
+
+
+        let _row = match index % 2 {
+            0 => table.add_row(
+                row![bFW->field.name,bFW->field.offset,bFW->field.size,bFW->field.data_type,bFW->hex_string,bFW->formatted_data,bFW->field.description],
+            ),
+            _ => table.add_row(
+                row![bFC->field.name,bFC->field.offset,bFC->field.size,bFC->field.data_type,bFC->hex_string,bFW->formatted_data,bFC->field.description],
+            ),
+        };
+    
+    }
+    table.printstd();
+
+    Ok(ParseResult::Success)
+}
+
+pub fn fill_field_hashmap(
+    field_hashmap: &mut HashMap<String, Vec<u8>>,
+    parsed_gram: &Grammer,
+    binary_file: &mut File,
+) -> Result<ParseResult, ParseResult> {
+    for field in &parsed_gram.fields {
+        field_hashmap.insert(
+            field.name.to_string(),
+            binary_file
+                .bytes()
+                .take(field.size)
+                .map(|r: Result<u8, _>| r.unwrap())
+                .collect(),
+        ); // Need to sort this out, will panic if error
+    }
+    // println!("{:#x?}",field_hashmap);
+    return Ok(ParseResult::Success);
 }
 
 pub fn print_hex_gram(
@@ -74,7 +145,7 @@ pub fn print_hex_gram(
 
     if binary_file_end_offset >= struct_offset {
         match binary_file.seek(SeekFrom::Start(struct_offset)) {
-            Ok(offset) => (),
+            Ok(_) => (),
             Err(error) => {
                 eprintln!(
                     "{} seeking to offset in file {}: {}",
@@ -91,22 +162,44 @@ pub fn print_hex_gram(
         return Err(ParseResult::OffsetToLarge);
     }
 
+    let parsed_gram = match parse_grammer(gram_file_contents) {
+        Some(parsed) => parsed,
+        None => return Err(ParseResult::GrammerParseFail),
+    };
+
+    let mut field_hashmap = HashMap::new();
+
+    match fill_field_hashmap(&mut field_hashmap, &parsed_gram, &mut binary_file) {
+        Ok(_) => (),
+        Err(_) => {
+            eprintln!("{} filling hashmap fields:", ERROR_START);
+            return Err(ParseResult::FillingHashMapFail);
+        }
+    }
+
+    match print_filled_table(&parsed_gram, &field_hashmap) {
+        Ok(_) => (),
+        Err(error) => return Err(error) 
+    }
+
     return Ok(ParseResult::Success);
 }
 
-pub fn check_mandatory_cmds(cmdline_hashmap: &mut HashMap<String, Option<String>>) -> Result<ParseResult,ParseResult> {
+pub fn check_mandatory_cmds(
+    cmdline_hashmap: &mut HashMap<String, Option<String>>,
+) -> Result<ParseResult, ParseResult> {
     match check_flag_and_file_exists(cmdline_hashmap, GRAMMER_FILE_FLAG) {
-        Ok(ParseResult::Success) => (),
+        Ok(_) => (),
         cmd_parse_result @ _ => return cmd_parse_result,
     }
 
     match check_flag_and_file_exists(cmdline_hashmap, BINARY_FILE_FLAG) {
-        Ok(ParseResult::Success) => (),
+        Ok(_) => (),
         cmd_parse_result @ _ => return cmd_parse_result,
     }
 
     match check_flag_and_value_exists(cmdline_hashmap, OFFSET_FLAG) {
-        Ok(ParseResult::Success) => (),
+        Ok(_) => (),
         cmd_parse_result @ _ => return cmd_parse_result,
     }
 
@@ -119,7 +212,7 @@ fn check_flag_and_value_exists(
 ) -> Result<ParseResult, ParseResult> {
     match cmdline_hashmap.contains_key(key) {
         true => match cmdline_hashmap.get(key).unwrap() {
-            Some(entry) => return Ok(ParseResult::Success),
+            Some(_) => return Ok(ParseResult::Success),
             None => {
                 eprintln!(
                     "{} You need to specify an offset into the binary file",

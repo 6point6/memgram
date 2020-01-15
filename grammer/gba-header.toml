@@ -5,15 +5,100 @@ size = 192
 big_endian = false
 
 [[fields]]
-    name = "ARM branch opcode"
+    name = "ROM Entry Point"
     offset = 0
     size = 4
+    data_type = "ARM instruction"
     display_format = 'hex'
-    description = '(32bit ARM branch opcode, eg. B rom_start)'
+    description = '32bit ARM branch opcode, eg. B rom_start'
 
 [[fields]]
-    name = "Nintendo logo"
+    name = "Nintendo Logo"
     offset = 4
     size = 156
+    data_type = "Compressed bitmap"
     display_format = 'hex'
     description = 'Compressed Nintendo logo bitmap'
+
+[[fields]]
+    name = "Game Title"
+    offset = 0xA0
+    size = 12
+    data_type = "ASCII"
+    display_format = 'ascii'
+    description = 'Uppercase ascii, max 12 characters'
+
+[[fields]]
+    name = "Game Code"
+    offset = 0xAC
+    size = 4
+    data_type = "ASCII"
+    display_format = 'ascii'
+    description = 'Uppercase ascii, 4 characters'
+
+[[fields]]
+    name = "Maker Code"
+    offset = 0xB0
+    size = 2
+    data_type = "ASCII"
+    display_format = 'ascii'
+    description = 'Uppercase ascii, 2 characters'
+
+[[fields]]
+    name = "Fixed Value"
+    offset = 0xB2
+    size = 1
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Must be 96h, required!'
+
+[[fields]]
+    name = "Main Unit Code"
+    offset = 0xB3
+    size = 1
+    data_type = "N/A"
+    display_format = 'hex'
+    description = '00h for current GBA models'
+
+[[fields]]
+    name = "Device Type"
+    offset = 0xB4
+    size = 1
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'usually 00h) (bit7=DACS/debug related'
+
+[[fields]]
+    name = "Reserved Area"
+    offset = 0xB5
+    size = 7
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Should be zero filled'
+
+[[fields]]
+    name = "Software Version"
+    offset = 0xBC
+    size = 1
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Usually 00h'
+
+[[fields]]
+    name = "Complement Check"
+    offset = 0xBD
+    size = 1
+    data_type = "Checksum"
+    display_format = 'hex'
+    description = 'Header checksum, required!'
+
+[[fields]]
+    name = "Reserved Area"
+    offset = 0xBE
+    size = 2
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Should be zero filled'
+
+
+

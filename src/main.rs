@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::process;
+#[macro_use]
+extern crate prettytable;
 
 fn usage_and_exit(exit_code: i32) {
     println!("usage: blah blah");
@@ -49,6 +51,4 @@ fn main() {
     };
 
     let i = gram_parse::print_hex_gram(&gram_file_contents, &binary_file_path, struct_offset);
-
-    // }
 }
