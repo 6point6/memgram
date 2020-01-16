@@ -8,7 +8,7 @@ big_endian = false
     name = "Bootstrap Code"
     offset = 0
     size = 0x1BE
-    data_type = "x86 machine code"
+    data_type = "Mixed"
     display_format = 'hex'
     description = 'MBR bootstrap code'
 
