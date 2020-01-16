@@ -1,6 +1,7 @@
 mod arg_parse;
 mod gram_parse;
 mod hexfmt;
+mod errorh;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -50,5 +51,13 @@ fn main() {
         None => panic!("[-] No value for {} flag", gram_parse::OFFSET_FLAG),
     };
 
-    let i = gram_parse::print_hex_gram(&gram_file_contents, &binary_file_path, struct_offset);
+    match gram_parse::print_hex_gram(&gram_file_contents, &binary_file_path, struct_offset) {
+        Ok(_) => (),
+        Err(_) => panic!("[-] Failed to print grammer table for {}", binary_file_path)
+    }
+
+    match hexfmt::print_hex_table(&gram_file_contents, &binary_file_path, struct_offset) {
+        Ok(_) => (),
+        Err(_) => panic!("[-] Failed to print hex table for {}", binary_file_path)
+    }
 }

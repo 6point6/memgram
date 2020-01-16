@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
 use std::path::Path;
-use ascii::AsciiString;
+use crate::errorh;
 
 #[derive(PartialEq, Debug)]
 pub enum ParseResult {
@@ -21,31 +21,33 @@ pub enum ParseResult {
     FilePathNotSpecified,
     OffsetNotSpecified,
     OffsetFlagNotSpecified,
+    FeatureNotImplemented,
+    OffsetTooLarge,
     Success,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Grammer {
-    metadata: GrammerMetadata,
-    fields: Vec<GrammerField>,
+    pub metadata: GrammerMetadata,
+    pub fields: Vec<GrammerField>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct GrammerMetadata {
-    name: String,
-    fixed_size: bool,
-    size: usize,
-    big_endian: bool,
+    pub name: String,
+    pub fixed_size: bool,
+    pub size: u64,
+    pub big_endian: bool,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct GrammerField {
-    name: String,
-    offset: i64,
-    size: usize,
-    data_type: String,
-    display_format: String,
-    description: String,
+    pub name: String,
+    pub offset: i64,
+    pub size: usize,
+    pub data_type: String,
+    pub display_format: String,
+    pub description: String,
 }
 
 pub const GRAMMER_FILE_FLAG: &str = "-g";
@@ -54,13 +56,35 @@ pub const OFFSET_FLAG: &str = "-o";
 
 pub const ASCII_TYPE: &str = "ascii";
 
-pub const ERROR_START: &str = "[-] Error:";
+pub fn check_file_large_enough(struct_offset: u64, struct_size: u64 ,binary_file: &mut File, binary_path: &String) -> Result<ParseResult, ParseResult> {
+    let binary_file_size = binary_file.seek(SeekFrom::End(0)).unwrap();
+
+    if binary_file_size > struct_offset + struct_size { 
+        match binary_file.seek(SeekFrom::Start(struct_offset)) {
+            Ok(_) => return Ok(ParseResult::Success),
+            Err(error) => {
+                eprintln!(
+                    "{} seeking to offset in file {}: {}",
+                    errorh::ERROR_START, binary_path, error
+                );
+                return Err(ParseResult::SeekError);
+            }
+        }
+    } else {
+        eprintln!(
+            "{} offset + structure size is larger than the file {}:",
+            errorh::ERROR_START, binary_path
+        );
+        return Err(ParseResult::OffsetTooLarge);
+    }
+}
+
 
 pub fn parse_grammer(gram_file_contents: &String) -> Option<Grammer> {
     match toml::from_str(gram_file_contents) {
         Ok(gram) => return Some(gram),
         Err(error) => {
-            eprintln!("{} failed to parse grammer file {}", ERROR_START, error);
+            eprintln!("{} failed to parse grammer file {}", errorh::ERROR_START, error);
             return None;
         }
     }
@@ -85,7 +109,7 @@ fn print_filled_table(
             hex_string.push_str("...");
         }
 
-        let mut formatted_data: String = match field_hashmap.get(&field.name) {
+        let formatted_data: String = match field_hashmap.get(&field.name) {
             Some(raw_data) => match &field.display_format[..] {
                 ASCII_TYPE => raw_data.into_iter().map(|ascii| *ascii as char).collect(),
                 _ => String::from("N/A")
@@ -99,7 +123,7 @@ fn print_filled_table(
                 row![bFW->field.name,bFW->field.offset,bFW->field.size,bFW->field.data_type,bFW->hex_string,bFW->formatted_data,bFW->field.description],
             ),
             _ => table.add_row(
-                row![bFC->field.name,bFC->field.offset,bFC->field.size,bFC->field.data_type,bFC->hex_string,bFW->formatted_data,bFC->field.description],
+                row![bFC->field.name,bFC->field.offset,bFC->field.size,bFC->field.data_type,bFC->hex_string,bFC->formatted_data,bFC->field.description],
             ),
         };
     
@@ -133,46 +157,42 @@ pub fn print_hex_gram(
     binary_path: &String,
     struct_offset: u64,
 ) -> Result<ParseResult, ParseResult> {
-    let mut binary_file = match File::open(binary_path) {
-        Ok(file) => file,
-        Err(error) => {
-            eprintln!("{} opening file {}: {}", ERROR_START, binary_path, error);
-            return Err(ParseResult::OpenFileError);
-        }
-    };
-
-    let binary_file_end_offset = binary_file.seek(SeekFrom::End(0)).unwrap();
-
-    if binary_file_end_offset >= struct_offset {
-        match binary_file.seek(SeekFrom::Start(struct_offset)) {
-            Ok(_) => (),
-            Err(error) => {
-                eprintln!(
-                    "{} seeking to offset in file {}: {}",
-                    ERROR_START, binary_path, error
-                );
-                return Err(ParseResult::SeekError);
-            }
-        }
-    } else {
-        eprintln!(
-            "{} provided offset {} is larger than size of file {}: {}",
-            ERROR_START, struct_offset, binary_path, binary_file_end_offset
-        );
-        return Err(ParseResult::OffsetToLarge);
-    }
 
     let parsed_gram = match parse_grammer(gram_file_contents) {
         Some(parsed) => parsed,
         None => return Err(ParseResult::GrammerParseFail),
     };
 
+    match parsed_gram.metadata.fixed_size {
+        true => (),
+        false => { 
+            eprintln!(
+                "{} variable size data structures currently not supported",
+                errorh::ERROR_START
+            );
+            return Err(ParseResult::FeatureNotImplemented)
+        }
+    }
+
+    let mut binary_file = match File::open(binary_path) {
+        Ok(file) => file,
+        Err(error) => {
+            eprintln!("{} opening file {}: {}", errorh::ERROR_START, binary_path, error);
+            return Err(ParseResult::OpenFileError);
+        }
+    };
+
+    match check_file_large_enough(struct_offset, parsed_gram.metadata.size, &mut binary_file, &binary_path) {
+        Ok(_) => (),
+        Err(error) => return Err(error)
+    }
+
     let mut field_hashmap = HashMap::new();
 
     match fill_field_hashmap(&mut field_hashmap, &parsed_gram, &mut binary_file) {
         Ok(_) => (),
         Err(_) => {
-            eprintln!("{} filling hashmap fields:", ERROR_START);
+            eprintln!("{} filling hashmap fields:", errorh::ERROR_START);
             return Err(ParseResult::FillingHashMapFail);
         }
     }
@@ -216,7 +236,7 @@ fn check_flag_and_value_exists(
             None => {
                 eprintln!(
                     "{} You need to specify an offset into the binary file",
-                    ERROR_START
+                    errorh::ERROR_START
                 );
                 return Err(ParseResult::OffsetNotSpecified);
             }
@@ -224,7 +244,7 @@ fn check_flag_and_value_exists(
         false => {
             eprintln!(
                 "{} You need to specify the offset flag {}",
-                ERROR_START, OFFSET_FLAG
+                errorh::ERROR_START, OFFSET_FLAG
             );
             return Err(ParseResult::OffsetFlagNotSpecified);
         }
@@ -240,20 +260,20 @@ fn check_flag_and_file_exists(
             Some(entry) => match Path::new(entry).exists() {
                 true => return Ok(ParseResult::Success),
                 false => {
-                    eprintln!("{} Could not find file {:#?}", ERROR_START, entry);
+                    eprintln!("{} Could not find file {:#?}", errorh::ERROR_START, entry);
                     return Err(ParseResult::FileNotFound);
                 }
             },
             None => {
                 eprintln!(
                     "{} You need to specify a value for flag {}",
-                    ERROR_START, key
+                    errorh::ERROR_START, key
                 );
                 return Err(ParseResult::FilePathNotSpecified);
             }
         },
         false => {
-            eprintln!("{} You need to specify the flag {}", ERROR_START, key);
+            eprintln!("{} You need to specify the flag {}", errorh::ERROR_START, key);
             return Err(ParseResult::FlagNotSpecified);
         }
     }
