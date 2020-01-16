@@ -1,0 +1,59 @@
+[metadata]
+name = 'MBR'
+fixed_size = true
+size = 512
+big_endian = false
+
+[[fields]]
+    name = "Bootstrap Code"
+    offset = 0
+    size = 0x1BE
+    data_type = "x86 machine code"
+    display_format = 'hex'
+    description = 'MBR bootstrap code'
+
+[[fields]]
+    name = "Partition Entry 01"
+    offset = 0x1BE
+    size = 0x10
+    data_type = "Partition entry"
+    display_format = 'hex'
+    description = 'MBR partition entry 01'
+
+
+[[fields]]
+    name = "Partition Entry 02"
+    offset = 0x1CE
+    size = 0x10
+    data_type = "Partition entry"
+    display_format = 'hex'
+    description = 'MBR partition entry 02'
+
+
+[[fields]]
+    name = "Partition Entry 03"
+    offset = 0x1DE
+    size = 0x10
+    data_type = "Partition entry"
+    display_format = 'hex'
+    description = 'MBR partition entry 03'
+
+[[fields]]
+    name = "Partition Entry 03"
+    offset = 0x1EE
+    size = 0x10
+    data_type = "Partition entry"
+    display_format = 'hex'
+    description = 'MBR partition entry 04'
+
+
+[[fields]]
+    name = "Boot signature"
+    offset = 0x1FE
+    size = 0x02
+    data_type = "Signature"
+    display_format = 'hex'
+    description = 'MBR boot signature'
+
+
+

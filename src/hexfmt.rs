@@ -6,9 +6,7 @@ use crate::gram_parse;
 use crate::errorh;
 
 pub enum TableResult {
-    SeekError,
     OpenFileError,
-    FileNotFound,
     OffsetTooLarge,
     GrammerParseFail,
     FeatureNotImplemented,
@@ -54,8 +52,8 @@ struct_offset: u64,
 
     for (index, field) in parsed_gram.fields.iter().enumerate() {
         let _row = match index % 2 {
-            0 => color_vector.append(&mut vec![(hexplay::color::white_bold(), field.offset as usize..field.offset as usize + field.size)]),
-            _ => color_vector.append(&mut vec![(hexplay::color::cyan_bold(), field.offset as usize..field.offset as usize + field.size)])
+            0 => color_vector.append(&mut vec![(hexplay::color::green_bold(), field.offset as usize..field.offset as usize + field.size)]),
+            _ => color_vector.append(&mut vec![(hexplay::color::magenta_bold(), field.offset as usize..field.offset as usize + field.size)])
         };
     }
 

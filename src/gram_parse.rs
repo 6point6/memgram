@@ -120,10 +120,10 @@ fn print_filled_table(
 
         let _row = match index % 2 {
             0 => table.add_row(
-                row![bFW->field.name,bFW->field.offset,bFW->field.size,bFW->field.data_type,bFW->hex_string,bFW->formatted_data,bFW->field.description],
+                row![bFG->field.name,bFG->format!("{:#X}", field.offset),bFG->field.size,bFG->field.data_type,bFG->hex_string,bFG->formatted_data,bFG->field.description],
             ),
             _ => table.add_row(
-                row![bFC->field.name,bFC->field.offset,bFC->field.size,bFC->field.data_type,bFC->hex_string,bFC->formatted_data,bFC->field.description],
+                row![bFM->field.name,bFM->format!("{:#X}", field.offset),bFM->field.size,bFM->field.data_type,bFM->hex_string,bFM->formatted_data,bFM->field.description],
             ),
         };
     
@@ -148,7 +148,6 @@ pub fn fill_field_hashmap(
                 .collect(),
         ); // Need to sort this out, will panic if error
     }
-    // println!("{:#x?}",field_hashmap);
     return Ok(ParseResult::Success);
 }
 
