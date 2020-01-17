@@ -3,7 +3,6 @@ use crate::gram_parse;
 use hexplay::HexViewBuilder;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::SeekFrom;
 
 pub enum TableResult {
     OpenFileError,
@@ -56,6 +55,7 @@ pub fn print_hex_table(
         Ok(_) => (),
         _ => return Err(TableResult::OffsetTooLarge),
     }
+
     let raw_data: Vec<u8> = binary_file
         .bytes()
         .take(parsed_gram.metadata.size as usize)

@@ -1,0 +1,40 @@
+[metadata]
+name = 'test'
+fixed_size = true
+size = 512
+big_endian = false
+
+[[fields]]
+    name = "Hex"
+    offset = 0
+    size = 0x10
+    data_type = "custom"
+    display_format = 'hex'
+    description = 'No'
+
+[[fields]]
+    name = "Ascii"
+    offset = 0x10
+    size = 0x10
+    data_type = "ascii"
+    display_format = 'ascii'
+    description = 'test'
+
+[[fields]]
+    name = "Loopback be"
+    offset = 0x20
+    size = 0x04
+    data_type = "ipv4be"
+    display_format = 'ipv4be'
+    description = 'test'
+
+    [[fields]]
+    name = "Loopback le"
+    offset = 0x20
+    size = 0x04
+    data_type = "ipv4le"
+    display_format = 'ipv4le'
+    description = 'test'
+
+
+

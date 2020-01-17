@@ -1,11 +1,12 @@
 use crate::errorh;
 use hex::ToHex;
-use prettytable::{Cell, Row, Table};
+use prettytable::Table;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::Path;
 
 #[derive(PartialEq, Debug)]
@@ -55,6 +56,8 @@ pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
 
 pub const ASCII_TYPE: &str = "ascii";
+pub const IPV4LE_TYPE: &str = "ipv4le";
+pub const IPV4BE_TYPE: &str = "ipv4be";
 
 pub fn check_file_large_enough(
     struct_offset: u64,
@@ -101,6 +104,17 @@ pub fn parse_grammer(gram_file_contents: &String) -> Option<Grammer> {
     }
 }
 
+fn format_ipv4_string (ipv4_bytes: &Vec<u8>) -> String {
+    return format!(
+        "{}",
+        IpAddr::V4(Ipv4Addr::new(
+            ipv4_bytes[0],
+            ipv4_bytes[1],
+            ipv4_bytes[2],
+            ipv4_bytes[3]
+        )));
+}
+
 fn print_filled_table(
     parsed_gram: &Grammer,
     field_hashmap: &HashMap<String, Vec<u8>>,
@@ -131,6 +145,12 @@ fn print_filled_table(
         let formatted_data: String = match field_hashmap.get(&field.name) {
             Some(raw_data) => match &field.display_format[..] {
                 ASCII_TYPE => raw_data.into_iter().map(|ascii| *ascii as char).collect(),
+                IPV4BE_TYPE => format_ipv4_string(raw_data),
+                IPV4LE_TYPE => { 
+                    let mut reversed_raw_data = raw_data.clone();
+                    reversed_raw_data.reverse();
+                    format_ipv4_string(&reversed_raw_data)
+                }
                 _ => String::from("N/A"),
             },
             None => return Err(ParseResult::FieldValueEmpty),

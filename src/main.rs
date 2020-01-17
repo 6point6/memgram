@@ -62,7 +62,7 @@ fn main() {
             ),
         },
         None => panic!(
-            "{} No value for {} flag\n",
+            "{} No value for {} flag",
             errorh::ERROR_START,
             gram_parse::OFFSET_FLAG
         ),
