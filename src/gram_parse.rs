@@ -8,6 +8,7 @@ use std::io::prelude::*;
 use std::io::SeekFrom;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::Path;
+use widestring::U16CString;
 
 #[derive(PartialEq, Debug)]
 pub enum ParseResult {
@@ -24,6 +25,8 @@ pub enum ParseResult {
     OffsetFlagNotSpecified,
     FeatureNotImplemented,
     OffsetTooLarge,
+    UnableToFormatUTF16,
+    ErrorFormatIPV4,
     Success,
 }
 
@@ -56,8 +59,10 @@ pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
 
 pub const ASCII_TYPE: &str = "ascii";
-pub const IPV4LE_TYPE: &str = "ipv4le";
 pub const IPV4BE_TYPE: &str = "ipv4be";
+pub const IPV4LE_TYPE: &str = "ipv4le";
+pub const UTF16LE_TYPE: &str = "utf16be";
+pub const UTF16BE_TYPE: &str = "utf16le";
 
 pub fn check_file_large_enough(
     struct_offset: u64,
@@ -104,15 +109,59 @@ pub fn parse_grammer(gram_file_contents: &String) -> Option<Grammer> {
     }
 }
 
-fn format_ipv4_string (ipv4_bytes: &Vec<u8>) -> String {
-    return format!(
+fn format_ipv4_string(ipv4_bytes: &Vec<u8>) -> Result<String, ParseResult> {
+    match ipv4_bytes.len() {
+        4 => (),
+        _ => return Err(ParseResult::ErrorFormatIPV4),
+    }
+
+    return Ok(format!(
         "{}",
         IpAddr::V4(Ipv4Addr::new(
             ipv4_bytes[0],
             ipv4_bytes[1],
             ipv4_bytes[2],
             ipv4_bytes[3]
-        )));
+        ))
+    ));
+}
+
+fn format_utf16_string(
+    utf16_bytes: &Vec<u8>,
+    little_endian: bool,
+) -> Result<String, widestring::MissingNulError<u16>> {
+    match little_endian {
+        true => {
+            let le_raw_data: Vec<u16> = utf16_bytes
+                .chunks_exact(2)
+                .into_iter()
+                .map(|a| u16::from_le_bytes([a[0], a[1]]))
+                .collect();
+
+            match U16CString::from_vec_with_nul(le_raw_data) {
+                Ok(le_data) => return Ok(le_data.to_string_lossy()),
+                Err(error) => {
+                    eprintln!("{} utf16le string missing null bytes", errorh::ERROR_START);
+                    return Err(error);
+                }
+            }
+        }
+        false => {
+            let be_raw_data: Vec<u16> = utf16_bytes
+                .chunks_exact(2)
+                .into_iter()
+                .map(|a| u16::from_be_bytes([a[0], a[1]]))
+                .collect();
+
+            match U16CString::from_vec_with_nul(be_raw_data) {
+                Ok(be_data) => return Ok(be_data.to_string_lossy()),
+                Err(error) => {
+                    eprintln!("{} utf16be string missing null bytes", errorh::ERROR_START);
+                    return Err(error);
+                }
+            }
+        }
+    }
 }
 
 fn print_filled_table(
@@ -145,12 +194,27 @@ fn print_filled_table(
         let formatted_data: String = match field_hashmap.get(&field.name) {
             Some(raw_data) => match &field.display_format[..] {
                 ASCII_TYPE => raw_data.into_iter().map(|ascii| *ascii as char).collect(),
-                IPV4BE_TYPE => format_ipv4_string(raw_data),
-                IPV4LE_TYPE => { 
+                IPV4BE_TYPE => match format_ipv4_string(raw_data) {
+                    Ok(ipv4_string) => ipv4_string,
+                    Err(error) => return Err(error),
+                },
+                IPV4LE_TYPE => {
                     let mut reversed_raw_data = raw_data.clone();
                     reversed_raw_data.reverse();
-                    format_ipv4_string(&reversed_raw_data)
+
+                    match format_ipv4_string(&reversed_raw_data) {
+                        Ok(ipv4_string) => ipv4_string,
+                        Err(error) => return Err(error),
+                    }
                 }
+                UTF16LE_TYPE => match format_utf16_string(raw_data, true) {
+                    Ok(result) => result,
+                    Err(_) => return Err(ParseResult::UnableToFormatUTF16),
+                },
+                UTF16BE_TYPE => match format_utf16_string(raw_data, false) {
+                    Ok(result) => result,
+                    Err(_) => return Err(ParseResult::UnableToFormatUTF16),
+                },
                 _ => String::from("N/A"),
             },
             None => return Err(ParseResult::FieldValueEmpty),

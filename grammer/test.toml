@@ -8,7 +8,7 @@ big_endian = false
     name = "Hex"
     offset = 0
     size = 0x10
-    data_type = "custom"
+    data_type = "raw"
     display_format = 'hex'
     description = 'No'
 
@@ -28,13 +28,32 @@ big_endian = false
     display_format = 'ipv4be'
     description = 'test'
 
-    [[fields]]
+[[fields]]
     name = "Loopback le"
-    offset = 0x20
+    offset = 0x24
     size = 0x04
     data_type = "ipv4le"
     display_format = 'ipv4le'
     description = 'test'
+
+[[fields]]
+    name = "utf16 be"
+    offset = 0x28
+    size = 0x10
+    data_type = "utf16be"
+    display_format = 'utf16be'
+    description = 'test'
+
+[[fields]]
+    name = "utf16 le"
+    offset = 0x38
+    size = 0x10
+    data_type = "utf16le"
+    display_format = 'utf16le'
+    description = 'test'
+
+
+
 
 
 
