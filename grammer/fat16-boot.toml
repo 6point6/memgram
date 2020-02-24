@@ -8,7 +8,7 @@ big_endian = false
     name = "Start jump"
     offset = 0
     size = 0x03
-    data_type = "x86 JMP instruction"
+    data_type = "x86"
     display_format = 'hex'
     description = 'Code to jump to the bootstrap code'
 

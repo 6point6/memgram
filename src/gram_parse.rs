@@ -181,13 +181,14 @@ fn print_filled_table(
     ]);
 
     for (index, field) in parsed_gram.fields.iter().enumerate() {
+        
         let mut hex_string: String = match field_hashmap.get(&field.name) {
-            Some(raw_data) => raw_data.encode_hex::<String>(),
+            Some(raw_data) => raw_data.encode_hex::<String>().to_uppercase(),
             None => return Err(ParseResult::FieldValueEmpty),
         };
 
-        if hex_string.len() > 40 {
-            hex_string = hex_string[..40].to_string();
+        if hex_string.len() > 30 {
+            hex_string = hex_string[..30].to_string();
             hex_string.push_str("...");
         }
 
