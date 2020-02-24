@@ -1,5 +1,5 @@
 [package]
-name = "mem-gram"
+name = "memgram"
 version = "0.1.0"
 authors = ["kurome"]
 edition = "2018"

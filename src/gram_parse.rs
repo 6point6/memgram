@@ -6,16 +6,16 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
 use widestring::U16CString;
+
 
 #[derive(PartialEq, Debug)]
 pub enum ParseResult {
     GrammerParseFail,
     FillingHashMapFail,
     FlagNotSpecified,
-    OffsetToLarge,
     FieldValueEmpty,
     SeekError,
     OpenFileError,
@@ -41,7 +41,6 @@ pub struct GrammerMetadata {
     pub name: String,
     pub fixed_size: bool,
     pub size: u64,
-    pub big_endian: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -63,6 +62,7 @@ pub const IPV4BE_TYPE: &str = "ipv4be";
 pub const IPV4LE_TYPE: &str = "ipv4le";
 pub const UTF16LE_TYPE: &str = "utf16be";
 pub const UTF16BE_TYPE: &str = "utf16le";
+
 
 pub fn check_file_large_enough(
     struct_offset: u64,

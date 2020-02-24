@@ -5,14 +5,10 @@ mod hexfmt;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::process;
 #[macro_use]
 extern crate prettytable;
 
-fn usage_and_exit(exit_code: i32) {
-    println!("usage: blah blah");
-    process::exit(exit_code);
-}
+pub const USAGE: &str = "usage: blah blah";
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -20,12 +16,18 @@ fn main() {
 
     match arg_parse::parse_cmdline_args(args, &mut cmdline_hashmap) {
         Ok(arg_parse::ArgParseResult::Success) => (),
-        cmdline_parse_result @ _ => usage_and_exit(Err(cmdline_parse_result).unwrap()),
+        _ => {
+            eprintln!("{}",USAGE);
+            return
+        },
     };
 
     match gram_parse::check_mandatory_cmds(&mut cmdline_hashmap) {
         Ok(gram_parse::ParseResult::Success) => (),
-        binary_parse_result @ _ => usage_and_exit(Err(binary_parse_result).unwrap()),
+        _ => {
+            eprintln!("{}",USAGE);
+            return
+        },
     };
 
     let gram_file_contents: String =

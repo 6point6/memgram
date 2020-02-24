@@ -1,7 +1,7 @@
 [metadata]
 name = 'test'
 fixed_size = true
-size = 512
+size = 0x48
 big_endian = false
 
 [[fields]]

@@ -1,0 +1,181 @@
+[metadata]
+name = 'FAT16-bootsector'
+fixed_size = true
+size = 512
+big_endian = false
+
+[[fields]]
+    name = "Start jump"
+    offset = 0
+    size = 0x03
+    data_type = "x86 JMP instruction"
+    display_format = 'hex'
+    description = 'Code to jump to the bootstrap code'
+
+[[fields]]
+    name = "OEM ID"
+    offset = 0x03
+    size = 0x08
+    data_type = "ASCII"
+    display_format = 'ascii'
+    description = 'OEM ID - Name of the formatting OS'
+
+[[fields]]
+    name = "Sector Size"
+    offset = 0x0B
+    size = 0x02
+    data_type = "size"
+    display_format = 'hex'
+    description = 'How large in bytes each sector is'
+
+[[fields]]
+    name = "Sectors Per Cluster"
+    offset = 0x0D
+    size = 0x01
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of sectors per cluster'
+
+[[fields]]
+    name = "Number Of Reserved Sectors"
+    offset = 0x0E
+    size = 0x02
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of reserved sectors'
+
+[[fields]]
+    name = "Number Of FAT Copies"
+    offset = 0x10
+    size = 0x01
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of FAT copies in filesystem'
+
+[[fields]]
+    name = "Root Entry Count"
+    offset = 0x11
+    size = 0x02
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of possible entries in root directory'
+
+[[fields]]
+    name = "Small Number of Sectors"
+    offset = 0x13
+    size = 0x02
+    data_type = "Count"
+    display_format = 'hex'
+    description = 'Total number of sectors in the volume'
+
+[[fields]]
+    name = "Media Descriptor"
+    offset = 0x15
+    size = 0x01
+    data_type = "descriptor"
+    display_format = 'hex'
+    description = 'Indicates capactiy and physical format'
+
+[[fields]]
+    name = "Sectors Per FAT"
+    offset = 0x16
+    size = 0x02
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of sectors per FAT'
+
+[[fields]]
+    name = "Sectors per Track"
+    offset = 0x18
+    size = 0x02
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of sectors per track'
+
+[[fields]]
+    name = "Number of Heads"
+    offset = 0x1A
+    size = 0x02
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Head value when volume was formatted'
+
+[[fields]]
+    name = "Hidden Sectors"
+    offset = 0x1C
+    size = 0x04
+    data_type = "count"
+    display_format = 'hex'
+    description = 'Number of sectors preceding first sector of volume'
+
+[[fields]]
+    name = "Large Number of Sectors"
+    offset = 0x16
+    size = 0x04
+    data_type = "size"
+    display_format = 'hex'
+    description = 'Total number of sectors in volume (32MB +)'
+
+[[fields]]
+    name = "Drive Number"
+    offset = 0x24
+    size = 0x01
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Int 13h drive number'
+
+[[fields]]
+    name = "Reserved"
+    offset = 0x25
+    size = 0x01
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Reserved byte'
+
+[[fields]]
+    name = "Extended Boot Signature"
+    offset = 0x26
+    size = 0x01
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Reserved byte'
+
+[[fields]]
+    name = "Volume Serial Number"
+    offset = 0x27
+    size = 0x04
+    data_type = "N/A"
+    display_format = 'hex'
+    description = 'Volume serial number'
+
+[[fields]]
+    name = "Volume Label"
+    offset = 0x2B
+    size = 0x0B
+    data_type = "ASCII"
+    display_format = 'ascii'
+    description = 'Volume label'
+
+[[fields]]
+    name = "File System Type"
+    offset = 0x36
+    size = 0x08
+    data_type = "ASCII"
+    display_format = 'ascii'
+    description = 'Info display only'
+
+[[fields]]
+    name = "Bootstrap Code"
+    offset = 0x3E
+    size = 0x1C0
+    data_type = "size"
+    display_format = 'hex'
+    description = 'OS bootstrap code'
+
+[[fields]]
+    name = "Boot Sector Signature"
+    offset = 0x1FE
+    size = 0x02
+    data_type = "size"
+    display_format = 'hex'
+    description = 'Boot sector signature'
