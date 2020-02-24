@@ -9,14 +9,14 @@ big_endian = false
     offset = 0
     size = 0x03
     data_type = "x86"
-    display_format = 'hex'
+    display_format = 'x86'
     description = 'Code to jump to the bootstrap code'
 
 [[fields]]
     name = "OEM ID"
     offset = 0x03
     size = 0x08
-    data_type = "ASCII"
+    data_type = "ascii"
     display_format = 'ascii'
     description = 'OEM ID - Name of the formatting OS'
 
@@ -24,8 +24,8 @@ big_endian = false
     name = "Sector Size"
     offset = 0x0B
     size = 0x02
-    data_type = "size"
-    display_format = 'hex'
+    data_type = "sizele"
+    display_format = 'hexle'
     description = 'How large in bytes each sector is'
 
 [[fields]]
@@ -40,8 +40,8 @@ big_endian = false
     name = "Number Of Reserved Sectors"
     offset = 0x0E
     size = 0x02
-    data_type = "count"
-    display_format = 'hex'
+    data_type = "countle"
+    display_format = 'hexle'
     description = 'Number of reserved sectors'
 
 [[fields]]
@@ -56,15 +56,15 @@ big_endian = false
     name = "Root Entry Count"
     offset = 0x11
     size = 0x02
-    data_type = "count"
-    display_format = 'hex'
+    data_type = "countle"
+    display_format = 'hexle'
     description = 'Number of possible entries in root directory'
 
 [[fields]]
     name = "Small Number of Sectors"
     offset = 0x13
     size = 0x02
-    data_type = "Count"
+    data_type = "count"
     display_format = 'hex'
     description = 'Total number of sectors in the volume'
 
@@ -72,7 +72,7 @@ big_endian = false
     name = "Media Descriptor"
     offset = 0x15
     size = 0x01
-    data_type = "descriptor"
+    data_type = "N/A"
     display_format = 'hex'
     description = 'Indicates capactiy and physical format'
 
@@ -80,40 +80,40 @@ big_endian = false
     name = "Sectors Per FAT"
     offset = 0x16
     size = 0x02
-    data_type = "count"
-    display_format = 'hex'
+    data_type = "countle"
+    display_format = 'hexle'
     description = 'Number of sectors per FAT'
 
 [[fields]]
     name = "Sectors per Track"
     offset = 0x18
     size = 0x02
-    data_type = "count"
-    display_format = 'hex'
+    data_type = "countle"
+    display_format = 'hexle'
     description = 'Number of sectors per track'
 
 [[fields]]
     name = "Number of Heads"
     offset = 0x1A
     size = 0x02
-    data_type = "count"
-    display_format = 'hex'
+    data_type = "countle"
+    display_format = 'hexle'
     description = 'Head value when volume was formatted'
 
 [[fields]]
     name = "Hidden Sectors"
     offset = 0x1C
     size = 0x04
-    data_type = "count"
-    display_format = 'hex'
+    data_type = "countle"
+    display_format = 'hexle'
     description = 'Number of sectors preceding first sector of volume'
 
 [[fields]]
     name = "Large Number of Sectors"
     offset = 0x16
     size = 0x04
-    data_type = "size"
-    display_format = 'hex'
+    data_type = "sizele"
+    display_format = 'hexle'
     description = 'Total number of sectors in volume (32MB +)'
 
 [[fields]]
@@ -145,14 +145,14 @@ big_endian = false
     offset = 0x27
     size = 0x04
     data_type = "N/A"
-    display_format = 'hex'
+    display_format = 'hexle'
     description = 'Volume serial number'
 
 [[fields]]
     name = "Volume Label"
     offset = 0x2B
     size = 0x0B
-    data_type = "ASCII"
+    data_type = "ascii"
     display_format = 'ascii'
     description = 'Volume label'
 
@@ -160,7 +160,7 @@ big_endian = false
     name = "File System Type"
     offset = 0x36
     size = 0x08
-    data_type = "ASCII"
+    data_type = "ascii"
     display_format = 'ascii'
     description = 'Info display only'
 
@@ -168,7 +168,7 @@ big_endian = false
     name = "Bootstrap Code"
     offset = 0x3E
     size = 0x1C0
-    data_type = "size"
+    data_type = "x86"
     display_format = 'hex'
     description = 'OS bootstrap code'
 
@@ -176,6 +176,6 @@ big_endian = false
     name = "Boot Sector Signature"
     offset = 0x1FE
     size = 0x02
-    data_type = "size"
+    data_type = "signature"
     display_format = 'hex'
     description = 'Boot sector signature'

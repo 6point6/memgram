@@ -57,6 +57,7 @@ pub const GRAMMER_FILE_FLAG: &str = "-g";
 pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
 
+pub const HEXLE_TYPE: &str = "hexle";
 pub const ASCII_TYPE: &str = "ascii";
 pub const IPV4BE_TYPE: &str = "ipv4be";
 pub const IPV4LE_TYPE: &str = "ipv4le";
@@ -194,6 +195,11 @@ fn print_filled_table(
 
         let formatted_data: String = match field_hashmap.get(&field.name) {
             Some(raw_data) => match &field.display_format[..] {
+                HEXLE_TYPE => {
+                    let mut reversed_raw_data: Vec<u8> = raw_data.clone();
+                    reversed_raw_data.reverse();
+                    reversed_raw_data.encode_hex::<String>().to_uppercase()
+                },
                 ASCII_TYPE => raw_data.into_iter().map(|ascii| *ascii as char).collect(),
                 IPV4BE_TYPE => match format_ipv4_string(raw_data) {
                     Ok(ipv4_string) => ipv4_string,
@@ -201,7 +207,7 @@ fn print_filled_table(
                 },
                 IPV4LE_TYPE => {
                     let mut reversed_raw_data = raw_data.clone();
-                    reversed_raw_data.reverse();
+                    reversed_raw_data.reverse(); 
 
                     match format_ipv4_string(&reversed_raw_data) {
                         Ok(ipv4_string) => ipv4_string,
@@ -216,7 +222,7 @@ fn print_filled_table(
                     Ok(result) => result,
                     Err(_) => return Err(ParseResult::UnableToFormatUTF16),
                 },
-                _ => String::from("N/A"),
+                _ => hex_string.clone()
             },
             None => return Err(ParseResult::FieldValueEmpty),
         };
