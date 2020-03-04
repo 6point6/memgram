@@ -50,14 +50,21 @@ pub mod arg_parse {
         }
 
         pub fn parse_file_flag(&mut self, flag: &str) -> Result<&mut CMDArgParse, ()> {
-            let file_path = self
+            let file_path_option = self
                 .arg_map
                 .get(flag)
                 .ok_or_else(|| {
                     serror!(format!("You need to specify a value for flag {}", flag));
                 })?
-                .clone()
-                .unwrap();
+                .clone();
+                
+            let file_path = match file_path_option {
+                Some(path) => path,
+                None => {
+                    serror!(format!("A file path must be specified for flag: {}",flag));
+                    return Err(())
+                }
+            };
 
             match Path::new(&file_path).exists() {
                 true => {
@@ -105,20 +112,17 @@ pub mod arg_parse {
 }
 
 pub mod file_parse {
-    use crate::parse::arg_parse::{BINARY_FILE_FLAG, GRAMMER_FILE_FLAG,CMDArgParse};
+    
     use std::fs;
-    use std::fs::File;
-
+    
     pub struct FileData {
         pub grammer_contents: String,
-        grammer_size: u64,
     }
 
     impl FileData {
         pub fn new() -> FileData {
             FileData {
                 grammer_contents: String::from(""),
-                grammer_size: 0,
             }
         }
         pub fn read_grammer(

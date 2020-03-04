@@ -12,9 +12,9 @@ macro_rules! serror {
     };
 }
 
-const usage_string: &str = "memgram [OPTION] [VALUE]";
-const options: [&str;3] = ["-g     grammer file","-b     binary file","-o     offset into binary file"];
+const USAGE_STRING: &str = "memgram [OPTION] [VALUE]";
+const OPTIONS: [&str;3] = ["-g     grammer file","-b     binary file","-o     offset into binary file"];
 
 pub fn usage() {
-    println!("USAGE:\n\t{}\n\nOPTIONS:{:#?}\n\nEXAMPLE:\n\tmemgram -b mbrdump.bin -g ./grammer/mbr.toml -o 0",usage_string,options);
+    println!("USAGE:\n\t{}\n\nOPTIONS:{:#?}\n\nEXAMPLE:\n\tmemgram -b ./examples/test_formats.bin -g ./grammer/test_formats.toml -o 0",USAGE_STRING,OPTIONS);
 }
