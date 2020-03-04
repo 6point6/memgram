@@ -1,90 +1,40 @@
-mod arg_parse;
-mod errorh;
-mod gram_parse;
-mod hexfmt;
-use std::collections::HashMap;
-use std::env;
-use std::fs;
+#[macro_use]
+mod errors;
+mod parse;
+
+// use backtrace::Backtrace;
+use parse::{arg_parse, file_parse, gram_parse};
+
 #[macro_use]
 extern crate prettytable;
 
-pub const USAGE: &str = "usage: blah blah";
+fn main() -> Result<(), ()> {
+    let mut cmd_args = arg_parse::CMDArgParse::new();
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let mut cmdline_hashmap: HashMap<String, Option<String>> = HashMap::new();
+    cmd_args
+        .parse_cmd_args()?
+        .parse_file_flag(arg_parse::GRAMMER_FILE_FLAG)?
+        .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
+        .parse_offset_flag(arg_parse::OFFSET_FLAG)?;
 
-    match arg_parse::parse_cmdline_args(args, &mut cmdline_hashmap) {
-        Ok(arg_parse::ArgParseResult::Success) => (),
-        _ => {
-            eprintln!("{}",USAGE);
-            return
-        },
-    };
+    let mut file_contents = file_parse::FileData::new();
 
-    match gram_parse::check_mandatory_cmds(&mut cmdline_hashmap) {
-        Ok(gram_parse::ParseResult::Success) => (),
-        _ => {
-            eprintln!("{}",USAGE);
-            return
-        },
-    };
+    file_contents.read_grammer(&cmd_args.grammer_filepath)?;
 
-    let gram_file_contents: String =
-        match cmdline_hashmap.get(gram_parse::GRAMMER_FILE_FLAG).unwrap() {
-            Some(path) => match fs::read_to_string(path) {
-                Ok(file) => file,
-                Err(error) => panic!("{} Error opening file: {}", errorh::ERROR_START, error),
-            },
-            None => panic!(
-                "{} No value for {} flag",
-                errorh::ERROR_START,
-                gram_parse::GRAMMER_FILE_FLAG
-            ),
-        };
+    let mut parsed_gram = gram_parse::Grammer::new();
+    parsed_gram.parse_toml(&file_contents)?;
 
-    let binary_file_path: &String = match cmdline_hashmap.get(gram_parse::BINARY_FILE_FLAG).unwrap()
-    {
-        Some(path) => path,
-        None => panic!(
-            "{} No value for {} flag",
-            errorh::ERROR_START,
-            gram_parse::BINARY_FILE_FLAG
-        ),
-    };
+    let mut table_data = gram_parse::TableData::new();
 
-    let struct_offset: u64 = match cmdline_hashmap.get(gram_parse::OFFSET_FLAG).unwrap() {
-        Some(string_offset) => match string_offset.parse::<u64>() {
-            Ok(u64_offset) => u64_offset,
-            Err(error) => panic!(
-                "{} Invalid offset for {} flag: {}",
-                errorh::ERROR_START,
-                string_offset,
-                error
-            ),
-        },
-        None => panic!(
-            "{} No value for {} flag",
-            errorh::ERROR_START,
-            gram_parse::OFFSET_FLAG
-        ),
-    };
+    table_data
+        .fill_description_table(&parsed_gram)
+        .print_table(gram_parse::Tables::Description);
 
-    match gram_parse::print_hex_gram(&gram_file_contents, &binary_file_path, struct_offset) {
-        Ok(_) => (),
-        Err(_) => panic!(
-            "{} Failed to print grammer table for {}",
-            errorh::ERROR_START,
-            binary_file_path
-        ),
-    }
+    table_data
+        .create_field_hashmap(&parsed_gram, &cmd_args)?
+        .format_fields(&parsed_gram)?
+        .fill_standard_table(&parsed_gram)?
+        .print_table(gram_parse::Tables::Standard);
 
-    match hexfmt::print_hex_table(&gram_file_contents, &binary_file_path, struct_offset) {
-        Ok(_) => (),
-        Err(_) => panic!(
-            "{} Failed to print hex table for {}",
-            errorh::ERROR_START,
-            binary_file_path
-        ),
-    }
+    Ok(())
 }

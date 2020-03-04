@@ -8,8 +8,8 @@ big_endian = false
     name = "Start jump"
     offset = 0
     size = 0x03
-    data_type = "x86"
-    display_format = 'x86'
+    data_type = "x86_32"
+    display_format = 'x86_32'
     description = 'Code to jump to the bootstrap code'
 
 [[fields]]
@@ -110,7 +110,7 @@ big_endian = false
 
 [[fields]]
     name = "Large Number of Sectors"
-    offset = 0x16
+    offset = 0x20
     size = 0x04
     data_type = "sizele"
     display_format = 'hexle'
@@ -168,8 +168,8 @@ big_endian = false
     name = "Bootstrap Code"
     offset = 0x3E
     size = 0x1C0
-    data_type = "x86"
-    display_format = 'hex'
+    data_type = "x86_32"
+    display_format = 'x86_32'
     description = 'OS bootstrap code'
 
 [[fields]]
@@ -177,5 +177,5 @@ big_endian = false
     offset = 0x1FE
     size = 0x02
     data_type = "signature"
-    display_format = 'hex'
+    display_format = 'hexle'
     description = 'Boot sector signature'
