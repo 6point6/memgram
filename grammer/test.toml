@@ -10,15 +10,15 @@ big_endian = false
     size = 0x10
     data_type = "raw"
     display_format = 'hex'
-    description = 'No'
+    description = 'Display hex formatting'
 
 [[fields]]
-    name = "Ascii"
+    name = "ascii"
     offset = 0x10
     size = 0x10
     data_type = "ascii"
     display_format = 'ascii'
-    description = 'test'
+    description = 'Display ascii formatting'
 
 [[fields]]
     name = "Loopback be"
@@ -26,7 +26,7 @@ big_endian = false
     size = 0x04
     data_type = "ipv4be"
     display_format = 'ipv4be'
-    description = 'test'
+    description = 'Display big endian IPv4'
 
 [[fields]]
     name = "Loopback le"
@@ -34,7 +34,7 @@ big_endian = false
     size = 0x04
     data_type = "ipv4le"
     display_format = 'ipv4le'
-    description = 'test'
+    description = 'Display little endian IPv4 '
 
 [[fields]]
     name = "utf16 be"
@@ -42,7 +42,7 @@ big_endian = false
     size = 0x10
     data_type = "utf16be"
     display_format = 'utf16be'
-    description = 'test'
+    description = 'Display big endian utf16'
 
 [[fields]]
     name = "utf16 le"
@@ -50,8 +50,15 @@ big_endian = false
     size = 0x10
     data_type = "utf16le"
     display_format = 'utf16le'
-    description = 'test'
+    description = 'Display little endian utf16'
 
+[[fields]]
+    name = "x86_32"
+    offset = 0x48
+    size = 0x03
+    data_type = "x86_32"
+    display_format = 'x86_32'
+    description = 'Code to jump to the bootstrap code'
 
 
 
