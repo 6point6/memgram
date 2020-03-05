@@ -6,7 +6,9 @@ use prettytable::Table;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Read;
+use std::io::prelude::*;
+use std::io::SeekFrom;
+
 use std::net::{IpAddr, Ipv4Addr};
 use widestring::U16CString;
 
@@ -123,8 +125,19 @@ impl TableData {
         parsed_gram: &Grammer,
         cmd_args: &arg_parse::CMDArgParse,
     ) -> Result<&mut TableData, ()> {
-        let binary_file: &File = &File::open(&cmd_args.binary_filepath)
+        let binary_file: &mut File = &mut File::open(&cmd_args.binary_filepath)
             .map_err(|_| serror!(format!("Could not open file: {}", cmd_args.binary_filepath)))?;
+
+        check_filesize(
+            binary_file,
+            &cmd_args.binary_filepath,
+            cmd_args.struct_offset,
+            parsed_gram.metadata.size,
+        )?;
+
+        binary_file
+            .seek(SeekFrom::Start(cmd_args.struct_offset))
+            .unwrap();
 
         for field in &parsed_gram.fields {
             self.field_hashmap.insert(
@@ -242,6 +255,25 @@ fn format_utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String
     }
 }
 
+fn check_filesize(
+    binary_file: &mut File,
+    binary_path: &String,
+    struct_offset: u64,
+    struct_size: u64,
+) -> Result<(), ()> {
+    let file_size = binary_file.seek(SeekFrom::End(0)).unwrap();
+
+    if file_size > struct_offset + struct_size {
+        Ok(())
+    } else {
+        serror!(format!(
+            "((offset: {}) + (structure size: {})) is larger than the filesize: {} of {}",
+            struct_offset, struct_size, file_size ,binary_path
+        ));
+        Err(())
+    }
+}
+
 impl GrammerMetadata {
     pub fn new() -> GrammerMetadata {
         GrammerMetadata {
@@ -272,10 +304,6 @@ impl Grammer {
             }
         }
     }
-
-    // pub mod Format {
-
-    // }
 }
 
 pub struct DissassOutput {
