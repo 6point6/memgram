@@ -36,7 +36,6 @@ pub struct GrammerMetadata {
 #[derive(Deserialize, Debug, Clone)]
 pub struct GrammerFields {
     pub name: String,
-    pub offset: i64,
     pub size: usize,
     pub data_type: String,
     pub display_format: String,
@@ -74,7 +73,7 @@ impl TableData {
         };
     }
 
-    pub fn fill_standard_table(&mut self, parsed_gram: &Grammer) -> Result<&mut TableData, ()> {
+    pub fn fill_standard_table(&mut self, parsed_gram: &Grammer, mut struct_offset: usize) -> Result<&mut TableData, ()> {
         self.standard_table.add_row(row![
             "Field",
             "Offset",
@@ -95,11 +94,13 @@ impl TableData {
 
             if index % 2 == 0 {
                 self.standard_table
-                        .add_row(row![bFG->field.name,bFG->format!("{:#X}", field.offset),bFG->field.size,bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
+                        .add_row(row![bFG->field.name,bFG->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
             } else {
                 self.standard_table
-                        .add_row(row![bFM->field.name,bFM->format!("{:#X}", field.offset),bFM->field.size,bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
+                        .add_row(row![bFM->field.name,bFM->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
             }
+
+            struct_offset += field.size;
         }
 
         Ok(self)
@@ -257,7 +258,7 @@ fn format_utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String
 
 fn check_filesize(
     binary_file: &mut File,
-    binary_path: &String,
+    binary_path: &str,
     struct_offset: u64,
     struct_size: u64,
 ) -> Result<(), ()> {

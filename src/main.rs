@@ -35,7 +35,7 @@ fn main() -> Result<(), ()> {
     table_data
         .create_field_hashmap(&parsed_gram, &cmd_args)?
         .format_fields(&parsed_gram)?
-        .fill_standard_table(&parsed_gram)?
+        .fill_standard_table(&parsed_gram,cmd_args.struct_offset as usize)?
         .print_table(gram_parse::Tables::Standard);
 
     Ok(())
