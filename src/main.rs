@@ -1,9 +1,11 @@
 #[macro_use]
 mod errors;
-mod parse;
+mod arg_parse;
+mod file_parse;
+mod gram_parse;
 
 // use backtrace::Backtrace;
-use parse::{arg_parse, file_parse, gram_parse};
+// use arg_parse;;
 
 #[macro_use]
 extern crate prettytable;
