@@ -39,14 +39,14 @@ big_endian = false
     display_format = 'utf16be'
     description = 'Display big endian utf16'
 
-[[fields]]
+[[fields]] 
     name = "utf16 le"
     size = 0x10
     data_type = "utf16le"
     display_format = 'utf16le'
     description = 'Display little endian utf16'
 
-[[fields]]
+[[fields]] * 4
     name = "x86_32"
     size = 0x03
     data_type = "x86_32"

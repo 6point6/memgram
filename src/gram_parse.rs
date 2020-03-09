@@ -73,7 +73,11 @@ impl TableData {
         };
     }
 
-    pub fn fill_standard_table(&mut self, parsed_gram: &Grammer, mut struct_offset: usize) -> Result<&mut TableData, ()> {
+    pub fn fill_standard_table(
+        &mut self,
+        parsed_gram: &Grammer,
+        mut struct_offset: usize,
+    ) -> Result<&mut TableData, ()> {
         self.standard_table.add_row(row![
             "Field",
             "Offset",
@@ -269,7 +273,7 @@ fn check_filesize(
     } else {
         serror!(format!(
             "((offset: {}) + (structure size: {})) is larger than the filesize: {} of {}",
-            struct_offset, struct_size, file_size ,binary_path
+            struct_offset, struct_size, file_size, binary_path
         ));
         Err(())
     }
@@ -293,8 +297,8 @@ impl Grammer {
         }
     }
 
-    pub fn parse_toml(&mut self, file_contents: &file_parse::FileData) -> Result<&mut Grammer, ()> {
-        match toml::from_str::<Grammer>(&file_contents.grammer_contents) {
+    pub fn parse_toml(&mut self, file_contents: &String) -> Result<&mut Grammer, ()> {
+        match toml::from_str::<Grammer>(file_contents) {
             Ok(gram) => {
                 *self = gram;
                 Ok(self)
@@ -303,6 +307,58 @@ impl Grammer {
                 serror!("Could not parse grammer file");
                 Err(())
             }
+        }
+    }
+
+    pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
+        self.expand_fields(file_contents)?;
+
+        Ok(self)
+    }
+
+    fn expand_fields(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
+        let mut search_index: usize = 0;
+
+        loop {
+            search_index += match file_contents[search_index..].find("[[fields]] *") {
+                Some(matched_index) => matched_index,
+                None => return Ok(self),
+            };
+
+            let multiple: u32 = match file_contents
+                [search_index + 13..search_index + 14]
+                .trim()
+                .parse()
+            {
+                Ok(mul) => mul,
+                Err(_) => {
+                    serror!("Could not parse field multiplier");
+                    return Err(())
+                },
+            };
+
+            file_contents
+                .replace_range(search_index + 10..search_index + 14, "    ");
+
+            let field_end_index: usize = match file_contents[search_index..].find("\r\n") {
+                Some(matched_index) => matched_index,
+                None => {
+                    serror!("Could not find CRLF after multiplied field");
+                    return Err(())
+                }, 
+            };
+
+            // let mut multiplied_field = String::from("");
+
+            // for i in 0..multiple {
+            //     multiplied_field.push_str(&file_contents[search_index..field_end_index].to_string());
+            // }
+
+            println!("Multiple: {}, Search_index: {}, Field_end_index: {}\n\n",multiple,search_index, field_end_index);
+
+            println!("Search to end: {}\n\n", &file_contents[search_index..]);
+
+            println!("{}",&file_contents[search_index..field_end_index]);
         }
     }
 }

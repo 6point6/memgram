@@ -24,7 +24,9 @@ fn main() -> Result<(), ()> {
     file_contents.read_grammer(&cmd_args.grammer_filepath)?;
 
     let mut parsed_gram = gram_parse::Grammer::new();
-    parsed_gram.parse_toml(&file_contents)?;
+    parsed_gram
+        .pre_parse_toml(&mut file_contents.grammer_contents)?
+        .parse_toml(&file_contents.grammer_contents)?;
 
     let mut table_data = gram_parse::TableData::new();
 
@@ -35,7 +37,7 @@ fn main() -> Result<(), ()> {
     table_data
         .create_field_hashmap(&parsed_gram, &cmd_args)?
         .format_fields(&parsed_gram)?
-        .fill_standard_table(&parsed_gram,cmd_args.struct_offset as usize)?
+        .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
         .print_table(gram_parse::Tables::Standard);
 
     Ok(())

@@ -12,12 +12,11 @@ big_endian = false
     description = 'MBR bootstrap code'
 
 [[fields]]
-    name = "Partition Entry 01"
+    name = "Partition Entry"
     size = 0x10
     data_type = "Partition entry"
     display_format = 'hex'
-    description = 'MBR partition entry 01'
-
+    description = 'MBR partition entry'
 
 [[fields]]
     name = "Partition Entry 02"
@@ -35,7 +34,7 @@ big_endian = false
     description = 'MBR partition entry 03'
 
 [[fields]]
-    name = "Partition Entry 03"
+    name = "Partition Entry 04"
     size = 0x10
     data_type = "Partition entry"
     display_format = 'hex'
