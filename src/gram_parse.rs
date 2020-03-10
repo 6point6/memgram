@@ -1,5 +1,4 @@
 use crate::arg_parse;
-use crate::file_parse;
 use hex::ToHex;
 use iced_x86::{Decoder, DecoderOptions, Formatter, Instruction, NasmFormatter};
 use prettytable::Table;
