@@ -11,35 +11,12 @@ big_endian = false
     display_format = 'hex'
     description = 'MBR bootstrap code'
 
-[[fields]]
+[[fields]] * 4
     name = "Partition Entry"
     size = 0x10
     data_type = "Partition entry"
     display_format = 'hex'
     description = 'MBR partition entry'
-
-[[fields]]
-    name = "Partition Entry 02"
-    size = 0x10
-    data_type = "Partition entry"
-    display_format = 'hex'
-    description = 'MBR partition entry 02'
-
-
-[[fields]]
-    name = "Partition Entry 03"
-    size = 0x10
-    data_type = "Partition entry"
-    display_format = 'hex'
-    description = 'MBR partition entry 03'
-
-[[fields]]
-    name = "Partition Entry 04"
-    size = 0x10
-    data_type = "Partition entry"
-    display_format = 'hex'
-    description = 'MBR partition entry 04'
-
 
 [[fields]]
     name = "Boot signature"
