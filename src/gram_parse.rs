@@ -115,18 +115,19 @@ impl TableData {
     }
 
     pub fn fill_description_table(&mut self, parsed_gram: &Grammer) -> &mut TableData {
-        self.description_table.add_row(row!["ID","Field", "Description"]);
+        self.description_table
+            .add_row(row!["ID", "Field", "Description"]);
 
         for (index, field) in parsed_gram.fields.iter().enumerate() {
             let name_length: usize = field.name.len() - 3;
             let id: String = field.name[name_length..].to_string();
-            
+
             if index % 2 == 0 {
                 self.description_table
                     .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->field.description]);
             } else {
                 self.description_table
-                    .add_row(row![bFG->id,bFM->field.name[..name_length],bFM->field.description]);
+                    .add_row(row![bFM->id,bFM->field.name[..name_length],bFM->field.description]);
             }
         }
         self
@@ -312,14 +313,14 @@ impl Grammer {
             }
             Err(_) => {
                 serror!("Could not parse grammer file");
-                return Err(())
+                return Err(());
             }
         }
 
         let mut field_id: u32 = 0;
 
         for field in &mut self.fields {
-            field.name.push_str(&format!("{:03X}",field_id)[..]);
+            field.name.push_str(&format!("{:03X}", field_id)[..]);
             field_id += 1;
         }
 
@@ -341,37 +342,37 @@ impl Grammer {
                 None => return Ok(self),
             };
 
-            let multiple: u32 = match file_contents
-                [search_index + 13..search_index + 14]
+            let multiple: u32 = match file_contents[search_index + 13..search_index + 14]
                 .trim()
                 .parse()
             {
                 Ok(mul) => mul,
                 Err(_) => {
                     serror!("Could not parse field multiplier");
-                    return Err(())
-                },
+                    return Err(());
+                }
             };
 
-            file_contents
-                .replace_range(search_index + 10..search_index + 14, "    ");
+            file_contents.replace_range(search_index + 10..search_index + 14, "    ");
 
             let field_end_index: usize = match file_contents[search_index..].find("\r\n\r\n") {
                 Some(matched_index) => matched_index,
                 None => {
                     serror!("Could not find CRLF after multiplied field");
-                    return Err(())
-                }, 
+                    return Err(());
+                }
             };
 
             let mut multiplied_field = String::from("");
 
             for _i in 1..multiple {
-                multiplied_field.push_str(&file_contents[search_index..search_index + field_end_index].to_string());
+                multiplied_field.push_str(
+                    &file_contents[search_index..search_index + field_end_index].to_string(),
+                );
                 multiplied_field.push_str("\r\n\r\n");
             }
 
-            file_contents.insert_str(search_index, &multiplied_field[..]); 
+            file_contents.insert_str(search_index, &multiplied_field[..]);
         }
     }
 }
