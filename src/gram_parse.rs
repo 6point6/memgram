@@ -340,7 +340,7 @@ impl Grammer {
             file_contents
                 .replace_range(search_index + 10..search_index + 14, "    ");
 
-            let field_end_index: usize = match file_contents[search_index..].find("\r\n") {
+            let field_end_index: usize = match file_contents[search_index..].find("\r\n\r\n") {
                 Some(matched_index) => matched_index,
                 None => {
                     serror!("Could not find CRLF after multiplied field");
@@ -348,17 +348,14 @@ impl Grammer {
                 }, 
             };
 
-            // let mut multiplied_field = String::from("");
+            let mut multiplied_field = String::from("");
 
-            // for i in 0..multiple {
-            //     multiplied_field.push_str(&file_contents[search_index..field_end_index].to_string());
-            // }
+            for _i in 0..multiple {
+                multiplied_field.push_str(&file_contents[search_index..search_index + field_end_index].to_string());
+                multiplied_field.push_str("\r\n\r\n");
+            }
 
-            println!("Multiple: {}, Search_index: {}, Field_end_index: {}\n\n",multiple,search_index, field_end_index);
-
-            println!("Search to end: {}\n\n", &file_contents[search_index..]);
-
-            println!("{}",&file_contents[search_index..field_end_index]);
+            file_contents.insert_str(search_index, &multiplied_field[..]); 
         }
     }
 }

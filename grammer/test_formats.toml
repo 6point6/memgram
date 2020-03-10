@@ -48,10 +48,10 @@ big_endian = false
 
 [[fields]] * 4
     name = "x86_32"
-    size = 0x03
+    size = 0x01
     data_type = "x86_32"
     display_format = 'x86_32'
-    description = 'Code to jump to the bootstrap code'
+    description = 'NOP opcode'
 
 
 
