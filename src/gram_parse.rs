@@ -350,7 +350,7 @@ impl Grammer {
 
             let mut multiplied_field = String::from("");
 
-            for _i in 0..multiple {
+            for _i in 1..multiple {
                 multiplied_field.push_str(&file_contents[search_index..search_index + field_end_index].to_string());
                 multiplied_field.push_str("\r\n\r\n");
             }

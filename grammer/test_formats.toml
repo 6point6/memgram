@@ -51,7 +51,14 @@ big_endian = false
     size = 0x01
     data_type = "x86_32"
     display_format = 'x86_32'
-    description = 'NOP opcode'
+    description = 'NOP opcode repeat test'
+
+[[fields]] * 2
+    name = "ascii"
+    size = 0x2
+    data_type = "ascii"
+    display_format = 'ascii'
+    description = 'Display ascii formatting repeat test'
 
 
 
