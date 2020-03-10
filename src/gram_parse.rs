@@ -79,6 +79,7 @@ impl TableData {
         mut struct_offset: usize,
     ) -> Result<&mut TableData, ()> {
         self.standard_table.add_row(row![
+            "ID",
             "Field",
             "Offset",
             "Size",
@@ -96,12 +97,15 @@ impl TableData {
                 serror!(format!("Could not get value for field: {}", field.name));
             })?;
 
+            let name_length: usize = field.name.len() - 3;
+            let id: String = field.name[name_length..].to_string();
+
             if index % 2 == 0 {
                 self.standard_table
-                        .add_row(row![bFG->field.name,bFG->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
+                        .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
             } else {
                 self.standard_table
-                        .add_row(row![bFM->field.name,bFM->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
+                        .add_row(row![bFM->id,bFM->field.name[..name_length],bFM->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
             }
 
             struct_offset += field.size;
@@ -111,15 +115,18 @@ impl TableData {
     }
 
     pub fn fill_description_table(&mut self, parsed_gram: &Grammer) -> &mut TableData {
-        self.description_table.add_row(row!["Field", "Description"]);
+        self.description_table.add_row(row!["ID","Field", "Description"]);
 
         for (index, field) in parsed_gram.fields.iter().enumerate() {
+            let name_length: usize = field.name.len() - 3;
+            let id: String = field.name[name_length..].to_string();
+            
             if index % 2 == 0 {
                 self.description_table
-                    .add_row(row![bFG->field.name,bFG->field.description]);
+                    .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->field.description]);
             } else {
                 self.description_table
-                    .add_row(row![bFM->field.name,bFM->field.description]);
+                    .add_row(row![bFG->id,bFM->field.name[..name_length],bFM->field.description]);
             }
         }
         self
@@ -301,13 +308,22 @@ impl Grammer {
         match toml::from_str::<Grammer>(file_contents) {
             Ok(gram) => {
                 *self = gram;
-                Ok(self)
+                ()
             }
             Err(_) => {
                 serror!("Could not parse grammer file");
-                Err(())
+                return Err(())
             }
         }
+
+        let mut field_id: u32 = 0;
+
+        for field in &mut self.fields {
+            field.name.push_str(&format!("{:03X}",field_id)[..]);
+            field_id += 1;
+        }
+
+        Ok(self)
     }
 
     pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
