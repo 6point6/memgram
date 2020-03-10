@@ -102,7 +102,7 @@ impl TableData {
 
             if index % 2 == 0 {
                 self.standard_table
-                        .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
+                        .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->format!("{:#X}", struct_offset),bFG->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
             } else {
                 self.standard_table
                         .add_row(row![bFM->id,bFM->field.name[..name_length],bFM->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
