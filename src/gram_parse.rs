@@ -275,7 +275,7 @@ fn check_filesize(
 ) -> Result<(), ()> {
     let file_size = binary_file.seek(SeekFrom::End(0)).unwrap();
 
-    if file_size > struct_offset + struct_size {
+    if file_size >= struct_offset + struct_size {
         Ok(())
     } else {
         serror!(format!(
