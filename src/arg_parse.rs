@@ -14,6 +14,7 @@ pub struct CMDArgParse {
     pub arg_map: HashMap<String, Option<String>>,
     pub grammer_filepath: String,
     pub binary_filepath: String,
+    pub cstruct_filepath: String,
     pub struct_offset: u64,
 }
 
@@ -24,6 +25,7 @@ impl CMDArgParse {
             arg_map: HashMap::new(),
             grammer_filepath: String::from(""),
             binary_filepath: String::from(""),
+            cstruct_filepath: String::from(""),
             struct_offset: 0,
         }
     }
@@ -72,8 +74,7 @@ impl CMDArgParse {
                 match flag {
                     GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
                     BINARY_FILE_FLAG => self.binary_filepath = file_path,
-                    CSTRUCT_FILE_FLAG => self.binary_filepath = file_path,
-                    OUTPUT_FILE_FLAG => self.binary_filepath = file_path,
+                    CSTRUCT_FILE_FLAG => self.cstruct_filepath = file_path,
                     _ => (serror!(format!("The flag is not a file flag: {}", flag))),
                 }
                 Ok(self)

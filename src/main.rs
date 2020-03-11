@@ -3,6 +3,7 @@ mod errors;
 mod arg_parse;
 mod file_parse;
 mod gram_parse;
+mod struct_convert;
 
 // use backtrace::Backtrace;
 // use arg_parse;;
@@ -20,6 +21,9 @@ fn main() -> Result<(), ()> {
             Some(_) => {
                 cmd_args.parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?;
 
+                let mut c_struct = struct_convert::CStruct::new();
+
+                c_struct.parse_c_struct(&cmd_args.cstruct_filepath)?;
 
                 return Ok(());
             }

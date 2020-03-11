@@ -1,5 +1,5 @@
-struct COFFHeader
- {
+struct COFFHeader 
+{
     short Machine;
     short NumberOfSections;
     long TimeDateStamp;
