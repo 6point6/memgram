@@ -1,6 +1,5 @@
 [metadata]
 name = 'MBR'
-size = 512
 
 [[fields]]
     name = "Bootstrap Code"

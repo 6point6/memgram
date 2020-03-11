@@ -28,7 +28,6 @@ pub struct Grammer {
 #[derive(Deserialize, Debug, Clone)]
 pub struct GrammerMetadata {
     pub name: String,
-    pub size: u64,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -143,7 +142,7 @@ impl TableData {
             binary_file,
             &cmd_args.binary_filepath,
             cmd_args.struct_offset,
-            parsed_gram.metadata.size,
+            parsed_gram,
         )?;
 
         binary_file
@@ -270,11 +269,17 @@ fn check_filesize(
     binary_file: &mut File,
     binary_path: &str,
     struct_offset: u64,
-    struct_size: u64,
+    parsed_gram: &Grammer,
 ) -> Result<(), ()> {
     let file_size = binary_file.seek(SeekFrom::End(0)).unwrap();
 
-    if file_size >= struct_offset + struct_size {
+    let mut struct_size: u64 = 0;
+
+    for field in  &parsed_gram.fields {
+        struct_size += field.size as u64;
+    }
+
+    if file_size <= struct_offset + struct_size {
         Ok(())
     } else {
         serror!(format!(
@@ -289,7 +294,6 @@ impl GrammerMetadata {
     pub fn new() -> GrammerMetadata {
         GrammerMetadata {
             name: String::from(""),
-            size: 0,
         }
     }
 }

@@ -1,6 +1,5 @@
 [metadata]
 name = 'GBA-Cartridge-Header'
-size = 192
 
 [[fields]]
     name = "ROM Entry Point"

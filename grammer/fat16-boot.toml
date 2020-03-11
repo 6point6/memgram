@@ -1,6 +1,5 @@
 [metadata]
 name = 'FAT16-bootsector'
-size = 512
 
 [[fields]]
     name = "Start jump"
