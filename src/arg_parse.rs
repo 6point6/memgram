@@ -4,12 +4,14 @@ use std::env;
 use std::path::Path;
 
 pub const GRAMMER_FILE_FLAG: &str = "-g";
+pub const CSTRUCT_FILE_FLAG: &str = "-c";
+pub const OUTPUT_FILE_FLAG: &str = "-o";
 pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-o";
 
 pub struct CMDArgParse {
     raw_args: Vec<String>,
-    arg_map: HashMap<String, Option<String>>,
+    pub arg_map: HashMap<String, Option<String>>,
     pub grammer_filepath: String,
     pub binary_filepath: String,
     pub struct_offset: u64,
@@ -70,6 +72,8 @@ impl CMDArgParse {
                 match flag {
                     GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
                     BINARY_FILE_FLAG => self.binary_filepath = file_path,
+                    CSTRUCT_FILE_FLAG => self.binary_filepath = file_path,
+                    OUTPUT_FILE_FLAG => self.binary_filepath = file_path,
                     _ => (serror!(format!("The flag is not a file flag: {}", flag))),
                 }
                 Ok(self)
@@ -80,6 +84,20 @@ impl CMDArgParse {
                     file_path, flag
                 ));
                 Err(())
+            }
+        }
+    }
+
+    pub fn check_convert_flags(&mut self) -> Result<Option<&mut CMDArgParse>, ()> {
+        if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG) {
+            Ok(None)
+        } else {
+            match self.arg_map.contains_key(OUTPUT_FILE_FLAG) {
+                true => Ok(Some(self)),
+                false => {
+                    serror!("You must provide an output file for conversion");
+                    Err(())
+                }
             }
         }
     }

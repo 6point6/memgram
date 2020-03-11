@@ -275,7 +275,7 @@ fn check_filesize(
 
     let mut struct_size: u64 = 0;
 
-    for field in  &parsed_gram.fields {
+    for field in &parsed_gram.fields {
         struct_size += field.size as u64;
     }
 

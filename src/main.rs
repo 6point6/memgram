@@ -13,8 +13,22 @@ extern crate prettytable;
 fn main() -> Result<(), ()> {
     let mut cmd_args = arg_parse::CMDArgParse::new();
 
+    cmd_args.parse_cmd_args()?;
+
+    match cmd_args.check_convert_flags() {
+        Ok(r) => match r {
+            Some(_) => {
+                cmd_args.parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?;
+
+
+                return Ok(());
+            }
+            None => (),
+        },
+        Err(_) => return Err(()),
+    }
+
     cmd_args
-        .parse_cmd_args()?
         .parse_file_flag(arg_parse::GRAMMER_FILE_FLAG)?
         .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
         .parse_offset_flag(arg_parse::OFFSET_FLAG)?;
