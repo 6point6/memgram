@@ -1,8 +1,6 @@
 [metadata]
 name = 'test'
-fixed_size = true
 size = 0x48
-big_endian = false
 
 [[fields]]
     name = "Hex"

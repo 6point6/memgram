@@ -28,7 +28,6 @@ pub struct Grammer {
 #[derive(Deserialize, Debug, Clone)]
 pub struct GrammerMetadata {
     pub name: String,
-    pub fixed_size: bool,
     pub size: u64,
 }
 
@@ -290,7 +289,6 @@ impl GrammerMetadata {
     pub fn new() -> GrammerMetadata {
         GrammerMetadata {
             name: String::from(""),
-            fixed_size: false,
             size: 0,
         }
     }
