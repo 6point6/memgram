@@ -4,7 +4,7 @@ use regex::Regex;
 
 pub struct CStruct {
     pub name: String,
-    pub fields: HashMap<usize,(String,String)>,
+    pub fields: HashMap<usize,[String;2]>,
 }
 
 impl CStruct {
@@ -49,11 +49,31 @@ impl CStruct {
 
         self.name = struct_name.clone().trim().to_string();
 
-        let re = Regex::new(r"([^\s;]+)([^;]+)").unwrap();
+        // let re = Regex::new(r"([^\s;]+)([^;]+)").unwrap();
 
-        for (index,cap) in re.captures_iter(&struct_string[next_index + 1..last_index]).enumerate() {
-            self.fields.insert(index,(cap[1].to_string(), cap[2].to_string()));
-        }
+        let words = struct_string[next_index + 1..last_index].split_ascii_whitespace().enumerate();
+
+        // for (index, word) in words {
+        //     let word_s = word.to_string();
+
+        //     if word.ends_with(";") {
+        //         match self.fields.get(&index).as_mut() {
+        //             Some(value) => value[1] = word_s,
+        //             None =>  serror!("blah"),
+        //         }
+        //     } else {
+        //             match self.fields.get(&index) {
+        //                 Some(value) => value[0].push_str(word),
+        //                 None => {self.fields.insert(index,[word_s,"".to_string()]);}
+        //             }
+        //         }
+        //     }
+        
+
+        // for (index,cap) in re.captures_iter(&struct_string[next_index + 1..last_index]).enumerate() {
+        //     self.fields.insert(index,(cap[1].to_string(), cap[2].trim().to_string()));
+        // }
+
 
         Ok(self)
     }
