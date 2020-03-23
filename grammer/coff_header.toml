@@ -1,0 +1,51 @@
+[metadata]
+	name = 'COFFHeader'
+
+[[fields]]
+	name = 'Machine'
+	size = '0x02'
+	data_type = 'short'
+	display_format = 'hex'
+	description = 'N/A'
+
+[[fields]]
+	name = 'NumberOfSections'
+	size = '0x02'
+	data_type = 'short'
+	display_format = 'hex'
+	description = 'N/A'
+
+[[fields]]
+	name = 'TimeDateStamp'
+	size = '0x04'
+	data_type = 'long'
+	display_format = 'hex'
+	description = 'N/A'
+
+[[fields]]
+	name = 'PointerToSymbolTable'
+	size = '0x04'
+	data_type = 'long'
+	display_format = 'hex'
+	description = 'N/A'
+
+[[fields]]
+	name = 'NumberOfSymbols'
+	size = '0x04'
+	data_type = 'long'
+	display_format = 'hex'
+	description = 'N/A'
+
+[[fields]]
+	name = 'SizeOfOptionalHeader'
+	size = '0x02'
+	data_type = 'short'
+	display_format = 'hex'
+	description = 'N/A'
+
+[[fields]]
+	name = 'Characteristics'
+	size = '0x02'
+	data_type = 'short'
+	display_format = 'hex'
+	description = 'N/A'

@@ -25,7 +25,8 @@ fn main() -> Result<(), ()> {
 
                 c_struct
                     .parse_c_struct(&cmd_args.cstruct_filepath)?
-                    .build_toml_string()?;
+                    .build_toml_string()?
+                    .write_toml_file(&cmd_args.output_filepath)?;
 
                 return Ok(());
             }

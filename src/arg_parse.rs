@@ -15,6 +15,7 @@ pub struct CMDArgParse {
     pub grammer_filepath: String,
     pub binary_filepath: String,
     pub cstruct_filepath: String,
+    pub output_filepath: String,
     pub struct_offset: u64,
 }
 
@@ -26,6 +27,7 @@ impl CMDArgParse {
             grammer_filepath: String::from(""),
             binary_filepath: String::from(""),
             cstruct_filepath: String::from(""),
+            output_filepath: String::from(""),
             struct_offset: 0,
         }
     }
@@ -93,13 +95,24 @@ impl CMDArgParse {
         if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG) {
             Ok(None)
         } else {
-            match self.arg_map.contains_key(OUTPUT_FILE_FLAG) {
-                true => Ok(Some(self)),
-                false => {
-                    serror!("You must provide an output file for conversion");
-                    Err(())
+            let file_path_option = self
+            .arg_map
+            .get(OUTPUT_FILE_FLAG)
+            .ok_or_else(|| {
+                serror!(format!("You must provide an output file for conversion"));
+            })?
+            .clone();
+
+            self.output_filepath = match file_path_option {
+                Some(path) => path,
+                None => {
+                    serror!(format!("A file path must be specified for flag: {}", OUTPUT_FILE_FLAG));
+                    return Err(());
                 }
-            }
+            };
+
+            Ok(Some(self))
+  
         }
     }
 

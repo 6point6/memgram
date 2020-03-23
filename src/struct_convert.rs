@@ -1,4 +1,6 @@
 use crate::file_parse;
+use std::fs::File;
+use std::io::prelude::*;
 
 pub struct CStruct {
     pub name: String,
@@ -94,14 +96,37 @@ impl CStruct {
                 .push_str(&format!("\tname = '{}'\r\n", field.1));
             self.toml_string
                 .push_str(&format!("\tsize = '{}'\r\n", get_field_size(&field.0)?));
-            self.toml_string.push_str(&format!("\tdata_type = '{}'\r\n",field.0));
+            self.toml_string
+                .push_str(&format!("\tdata_type = '{}'\r\n", field.0));
             self.toml_string.push_str("\tdisplay_format = 'hex'\r\n");
             self.toml_string.push_str("\tdescription = 'N/A'\r\n");
         }
-
-        println!("{}", self.toml_string);
-
         Ok(self)
+    }
+
+    pub fn write_toml_file(&mut self, output_path: &String) -> Result<&mut CStruct, ()> {
+        let mut grammer_file = match File::create(output_path) {
+            Ok(f) => f,
+            Err(e) => {
+                serror!(format!(
+                    "Could not create/open file {}, because {} ",
+                    output_path, e
+                ));
+                return Err(());
+            }
+        };
+
+        match grammer_file
+            .write_all(self.toml_string.as_bytes()) {
+                Ok(_) => {
+                    println!("[+] Successfully converted C struct {} to grammer file {}",self.name,output_path);
+                    Ok(self)
+                },
+                Err(e) => {
+                    serror!(format!("Could not write to file: {}, because {}",output_path,e));
+                    Err(())
+                }
+            }
     }
 }
 

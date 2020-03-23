@@ -22,14 +22,3 @@ pub fn read_file(file_path: &str) -> Result<String, ()> {
         Err(())
     })
 }
-
-// pub fn check_binary_filesize(&mut self,cmd_args: &CMDArgParse) {
-//     let binary_file_size =  binary_file.seek(SeekFrom::End(0)).unwrap();
-
-//     if binary_file_size > cmd_args.struct_offset + cmd_args.struct_size {
-
-//     } else {
-//         serror!(format!("Offset + structure size is larger than the file: {}",cmd_args.binary_filepath));
-//         Err(())
-//     }
-// }
