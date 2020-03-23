@@ -7,4 +7,4 @@ struct COFFHeader
     unsigned long long int NumberOfSymbols;
     short SizeOfOptionalHeader;
     short Characteristics;
- }
+};

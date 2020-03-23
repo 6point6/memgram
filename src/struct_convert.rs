@@ -36,10 +36,10 @@ impl CStruct {
             }
         };
 
-        let last_index: usize = match struct_string[next_index..].find("}") {
+        let last_index: usize = match struct_string[next_index..].find("};") {
             Some(matched_index) => matched_index + next_index,
             None => {
-                serror!("Invalid C struct: could not find closing '}'");
+                serror!("Invalid C struct: could not find closing '};'");
                 return Err(());
             }
         };
