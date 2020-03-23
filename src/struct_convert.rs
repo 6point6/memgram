@@ -1,5 +1,4 @@
 use crate::file_parse;
-use regex::Regex;
 use std::collections::HashMap;
 
 pub struct CStruct {
@@ -57,7 +56,7 @@ impl CStruct {
             if word.ends_with(";") {
                 match self.fields.get_mut(&entry_num) {
                     Some(value) => {
-                        value.1.push_str(word);
+                        value.1.push_str(&word[..word.len() -1]);
                         entry_num += 1
                     }
                     None => {
@@ -82,6 +81,7 @@ impl CStruct {
             }
         }
 
+        println!("{:#?}",self.fields);
         Ok(self)
     }
 }
