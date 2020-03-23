@@ -23,7 +23,9 @@ fn main() -> Result<(), ()> {
 
                 let mut c_struct = struct_convert::CStruct::new();
 
-                c_struct.parse_c_struct(&cmd_args.cstruct_filepath)?;
+                c_struct
+                    .parse_c_struct(&cmd_args.cstruct_filepath)?
+                    .build_toml_string()?;
 
                 return Ok(());
             }

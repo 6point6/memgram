@@ -3,14 +3,16 @@ use std::collections::HashMap;
 
 pub struct CStruct {
     pub name: String,
-    pub fields: HashMap<usize, (String, String)>,
+    pub fields: Vec<(String, String)>,
+    pub toml_string: String,
 }
 
 impl CStruct {
     pub fn new() -> CStruct {
         CStruct {
             name: String::from(""),
-            fields: HashMap::new(),
+            fields: Vec::new(),
+            toml_string: String::from(""),
         }
     }
 
@@ -50,14 +52,14 @@ impl CStruct {
 
         let words = struct_string[next_index + 1..last_index].split_ascii_whitespace();
 
-        let mut entry_num: usize = 0;
+        let mut entry_num = 0;
 
         for word in words {
             if word.ends_with(";") {
-                match self.fields.get_mut(&entry_num) {
+                match self.fields.get_mut(entry_num) {
                     Some(value) => {
-                        value.1.push_str(&word[..word.len() -1]);
-                        entry_num += 1
+                        value.1.push_str(&word[..word.len() - 1]);
+                        entry_num += 1;
                     }
                     None => {
                         serror!(format!(
@@ -68,20 +70,36 @@ impl CStruct {
                     }
                 }
             } else {
-                match self.fields.get_mut(&entry_num) {
+                match self.fields.get_mut(entry_num) {
                     Some(value) => {
                         value.0.push_str(" ");
                         value.0.push_str(word)
                     }
                     None => {
                         self.fields
-                            .insert(entry_num, (word.to_string(), "".to_string()));
+                            .insert(entry_num, (word.to_string(),"".to_string()))
                     }
                 }
             }
         }
+        Ok(self)
+    }
 
-        println!("{:#?}",self.fields);
+    pub fn build_toml_string(&mut self) -> Result<&mut CStruct, ()> {
+        self.toml_string.push_str("[metadata]\r\n");
+        self.toml_string
+            .push_str(&format!("\tname = '{}'\r\n\r\n", self.name)[..]);
+
+        let mut entry_num: usize = 0;
+
+        for field in &self.fields {
+            println!("{:#?}",field);
+            // self.toml_string.push_str("[[fields]]\r\n");
+            // self.toml_string.push_str("\tname = '{}'",)
+        }
+
+        println!("{}", self.toml_string);
+
         Ok(self)
     }
 }
