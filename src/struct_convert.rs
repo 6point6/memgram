@@ -1,5 +1,4 @@
 use crate::file_parse;
-use std::collections::HashMap;
 
 pub struct CStruct {
     pub name: String,
@@ -75,10 +74,9 @@ impl CStruct {
                         value.0.push_str(" ");
                         value.0.push_str(word)
                     }
-                    None => {
-                        self.fields
-                            .insert(entry_num, (word.to_string(),"".to_string()))
-                    }
+                    None => self
+                        .fields
+                        .insert(entry_num, (word.to_string(), "".to_string())),
                 }
             }
         }
@@ -88,18 +86,45 @@ impl CStruct {
     pub fn build_toml_string(&mut self) -> Result<&mut CStruct, ()> {
         self.toml_string.push_str("[metadata]\r\n");
         self.toml_string
-            .push_str(&format!("\tname = '{}'\r\n\r\n", self.name)[..]);
+            .push_str(&format!("\tname = '{}'\r\n", self.name)[..]);
 
-        let mut entry_num: usize = 0;
-
-        for field in &self.fields {
-            println!("{:#?}",field);
-            // self.toml_string.push_str("[[fields]]\r\n");
-            // self.toml_string.push_str("\tname = '{}'",)
+        for field in self.fields.iter() {
+            self.toml_string.push_str("\r\n[[fields]]\r\n");
+            self.toml_string
+                .push_str(&format!("\tname = '{}'\r\n", field.1));
+            self.toml_string
+                .push_str(&format!("\tsize = '{}'\r\n", get_field_size(&field.0)?));
+            self.toml_string.push_str(&format!("\tdata_type = '{}'\r\n",field.0));
+            self.toml_string.push_str("\tdisplay_format = 'hex'\r\n");
+            self.toml_string.push_str("\tdescription = 'N/A'\r\n");
         }
 
         println!("{}", self.toml_string);
 
         Ok(self)
     }
+}
+
+fn get_field_size(field_type: &String) -> Result<&str, ()> {
+    let l_field_type = field_type.to_lowercase();
+    return match &l_field_type[..] {
+        "char" | "signed char" | "unsigned char" => Ok("0x01"),
+        "short" | "short int" | "signed short" | "signed short int" | "unsigned short"
+        | "unsigned short int" => Ok("0x02"),
+        "float" | "int" | "signed" | "signed int" | "unsigned" | "unsigned int" | "long"
+        | "long int" | "signed long" | "signed long int" | "unsigned long"
+        | "unsigned long int" => Ok("0x04"),
+        "double"
+        | "long long"
+        | "long long int"
+        | "signed long long"
+        | "signed long long int"
+        | "unsigned long long"
+        | "unsigned long long int" => Ok("0x08"),
+        "long double" => Ok("0x10"),
+        _ => {
+            serror!(format!("Type: {}, is not supported", l_field_type));
+            return Err(());
+        }
+    };
 }

@@ -4,7 +4,7 @@ struct COFFHeader
     short NumberOfSections;
     long TimeDateStamp;
     long PointerToSymbolTable;
-    unsigned long long int NumberOfSymbols;
+    int NumberOfSymbols;
     short SizeOfOptionalHeader;
     short Characteristics;
 };
