@@ -279,7 +279,7 @@ fn check_filesize(
         struct_size += field.size as u64;
     }
 
-    if file_size <= struct_offset + struct_size {
+    if file_size >= struct_offset + struct_size {
         Ok(())
     } else {
         serror!(format!(
