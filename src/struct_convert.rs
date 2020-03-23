@@ -1,10 +1,10 @@
 use crate::file_parse;
-use std::collections::HashMap;
 use regex::Regex;
+use std::collections::HashMap;
 
 pub struct CStruct {
     pub name: String,
-    pub fields: HashMap<usize,[String;2]>,
+    pub fields: HashMap<usize, (String, String)>,
 }
 
 impl CStruct {
@@ -49,31 +49,38 @@ impl CStruct {
 
         self.name = struct_name.clone().trim().to_string();
 
-        // let re = Regex::new(r"([^\s;]+)([^;]+)").unwrap();
+        let words = struct_string[next_index + 1..last_index].split_ascii_whitespace();
 
-        let words = struct_string[next_index + 1..last_index].split_ascii_whitespace().enumerate();
+        let mut entry_num: usize = 0;
 
-        // for (index, word) in words {
-        //     let word_s = word.to_string();
-
-        //     if word.ends_with(";") {
-        //         match self.fields.get(&index).as_mut() {
-        //             Some(value) => value[1] = word_s,
-        //             None =>  serror!("blah"),
-        //         }
-        //     } else {
-        //             match self.fields.get(&index) {
-        //                 Some(value) => value[0].push_str(word),
-        //                 None => {self.fields.insert(index,[word_s,"".to_string()]);}
-        //             }
-        //         }
-        //     }
-        
-
-        // for (index,cap) in re.captures_iter(&struct_string[next_index + 1..last_index]).enumerate() {
-        //     self.fields.insert(index,(cap[1].to_string(), cap[2].trim().to_string()));
-        // }
-
+        for word in words {
+            if word.ends_with(";") {
+                match self.fields.get_mut(&entry_num) {
+                    Some(value) => {
+                        value.1.push_str(word);
+                        entry_num += 1
+                    }
+                    None => {
+                        serror!(format!(
+                            "Type must be specified in C struct before field name: {}",
+                            word
+                        ));
+                        return Err(());
+                    }
+                }
+            } else {
+                match self.fields.get_mut(&entry_num) {
+                    Some(value) => {
+                        value.0.push_str(" ");
+                        value.0.push_str(word)
+                    }
+                    None => {
+                        self.fields
+                            .insert(entry_num, (word.to_string(), "".to_string()));
+                    }
+                }
+            }
+        }
 
         Ok(self)
     }
