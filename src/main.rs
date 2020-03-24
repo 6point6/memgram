@@ -38,7 +38,8 @@ fn main() -> Result<(), ()> {
     cmd_args
         .parse_file_flag(arg_parse::GRAMMER_FILE_FLAG)?
         .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
-        .parse_offset_flag(arg_parse::OFFSET_FLAG)?;
+        .parse_offset_flag(arg_parse::OFFSET_FLAG)?
+        .parse_endian_flag(arg_parse::ENDIAN_FLAG);
 
     let mut file_contents = file_parse::FileData::new();
 
@@ -57,7 +58,7 @@ fn main() -> Result<(), ()> {
 
     table_data
         .create_field_hashmap(&parsed_gram, &cmd_args)?
-        .format_fields(&parsed_gram)?
+        .format_fields(&parsed_gram, cmd_args.reverse_endian)?
         .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
         .print_table(gram_parse::Tables::Standard);
 

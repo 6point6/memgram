@@ -162,7 +162,7 @@ impl TableData {
         Ok(self)
     }
 
-    pub fn format_fields(&mut self, parsed_gram: &Grammer) -> Result<&mut TableData, ()> {
+    pub fn format_fields(&mut self, parsed_gram: &Grammer, reverse_endian_flag: bool) -> Result<&mut TableData, ()> {
         for field in parsed_gram.fields.iter() {
             let mut raw_hex_string: String = self
                 .field_hashmap
@@ -208,7 +208,15 @@ impl TableData {
                         x86_disassembly.output
                     }
                 }
-                _ => raw_hex_string.clone(),
+                _ => {
+                    if reverse_endian_flag {
+                        let mut reversed_raw_data: Vec<u8> = raw_data.clone();
+                        reversed_raw_data.reverse();
+                        reversed_raw_data.encode_hex::<String>().to_uppercase()
+                    } else {
+                        raw_hex_string.clone()
+                    }
+                },
             };
             self.field_fmt_hashmap
                 .insert(field.name.clone(), formatted_data);
