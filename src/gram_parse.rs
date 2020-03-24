@@ -371,7 +371,7 @@ impl Grammer {
                 }
             };
 
-            file_contents.replace_range(search_index + 10..search_index + 14, "    ");
+            file_contents.replace_range(search_index + 10..next_line_index, "    ");
 
             let field_end_index: usize = match file_contents[search_index..].find("\r\n\r\n") {
                 Some(matched_index) => matched_index,
