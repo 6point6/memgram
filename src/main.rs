@@ -4,6 +4,7 @@ mod arg_parse;
 mod file_parse;
 mod gram_parse;
 mod struct_convert;
+mod hex_display;
 
 #[macro_use]
 extern crate prettytable;
@@ -59,6 +60,8 @@ fn run() -> Result<(), ()> {
         .format_fields(&parsed_gram, cmd_args.reverse_endian)?
         .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
         .print_table(gram_parse::Tables::Standard);
+
+    hex_display::print_hex_table(&mut parsed_gram, &cmd_args.binary_filepath,cmd_args.struct_offset as usize)?;
 
     Ok(())
 }

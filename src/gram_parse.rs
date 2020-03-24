@@ -337,6 +337,16 @@ impl Grammer {
         Ok(self)
     }
 
+    pub fn get_struct_size(&mut self) -> usize {
+        let mut struct_size: usize = 0;
+
+        for field in &self.fields {
+            struct_size += field.size;
+        }
+
+        struct_size
+    }
+
     pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
         self.expand_fields(file_contents)?;
 
