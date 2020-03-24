@@ -5,13 +5,14 @@ mod file_parse;
 mod gram_parse;
 mod struct_convert;
 
-// use backtrace::Backtrace;
-// use arg_parse;;
-
 #[macro_use]
 extern crate prettytable;
 
-fn main() -> Result<(), ()> {
+fn main()  {
+    if let Err(()) = run() {}
+}
+
+fn run() -> Result<(), ()> {
     let mut cmd_args = arg_parse::CMDArgParse::new();
 
     cmd_args.parse_cmd_args()?;
