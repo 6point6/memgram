@@ -5,7 +5,7 @@ use crate::gram_parse;
 
 pub fn print_hex_table(
     parsed_gram: &mut gram_parse::Grammer,
-    binary_path: &String,
+    binary_path: &str,
     mut field_offset: usize,
 ) -> Result<(), ()> {
 
@@ -28,7 +28,7 @@ pub fn print_hex_table(
     let mut color_vector = Vec::new();
 
     for (index, field) in parsed_gram.fields.iter().enumerate() {
-        let _row = match index % 2 {
+        match index % 2 {
             0 => color_vector.append(&mut vec![(
                 hexplay::color::green_bold(),
                 field_offset..field_offset+ field.size,
