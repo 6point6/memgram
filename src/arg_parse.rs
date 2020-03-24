@@ -102,7 +102,7 @@ impl CMDArgParse {
             .arg_map
             .get(OUTPUT_FILE_FLAG)
             .ok_or_else(|| {
-                serror!(format!("You must provide an output file for conversion"));
+                serror!("You must provide an output file for conversion");
             })?
             .clone();
 

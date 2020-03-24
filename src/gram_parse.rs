@@ -318,7 +318,6 @@ impl Grammer {
         match toml::from_str::<Grammer>(file_contents) {
             Ok(gram) => {
                 *self = gram;
-                ()
             }
             Err(_) => {
                 serror!("Could not parse grammer file");
@@ -328,7 +327,7 @@ impl Grammer {
 
         let mut field_id: u32 = 0;
 
-        for field in &mut self.fields {
+        for field in &mut self.fields{
             field.name.push_str(&format!("{:03X}", field_id)[..]);
             field_id += 1;
         }

@@ -132,7 +132,7 @@ impl CStruct {
 
 fn get_field_size(field_type: &String) -> Result<&str, ()> {
     let l_field_type = field_type.to_lowercase();
-    return match &l_field_type[..] {
+    match &l_field_type[..] {
         "char" | "signed char" | "unsigned char" => Ok("0x01"),
         "short" | "short int" | "signed short" | "signed short int" | "unsigned short"
         | "unsigned short int" => Ok("0x02"),
@@ -149,7 +149,7 @@ fn get_field_size(field_type: &String) -> Result<&str, ()> {
         "long double" => Ok("0x10"),
         _ => {
             serror!(format!("Type: {}, is not supported", l_field_type));
-            return Err(());
+            Err(())
         }
-    };
+    }
 }
