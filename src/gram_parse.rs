@@ -183,13 +183,17 @@ impl TableData {
                 serror!(format!("Could not get value for field: {}", field.name));
             })?;
 
+            let reverse_hex_string = || {
+                let mut reversed_raw_data: Vec<u8> = raw_data.clone();
+                reversed_raw_data.reverse();
+                reversed_raw_data.encode_hex::<String>().to_uppercase()
+            };
+
             let formatted_data = match &field.display_format[..] {
                 HEXLE_TYPE => {
-                    let mut reversed_raw_data: Vec<u8> = raw_data.clone();
-                    reversed_raw_data.reverse();
-                    reversed_raw_data.encode_hex::<String>().to_uppercase()
+                    reverse_hex_string()
                 }
-                ASCII_TYPE => raw_data.into_iter().map(|ascii| *ascii as char).collect(),
+                ASCII_TYPE => raw_data.iter().map(|ascii| *ascii as char).collect(),
                 IPV4BE_TYPE => format_ipv4_string(&raw_data)?,
                 IPV4LE_TYPE => {
                     let mut reversed_raw_data: Vec<u8> = raw_data.clone();
@@ -210,9 +214,7 @@ impl TableData {
                 }
                 _ => {
                     if reverse_endian_flag {
-                        let mut reversed_raw_data: Vec<u8> = raw_data.clone();
-                        reversed_raw_data.reverse();
-                        reversed_raw_data.encode_hex::<String>().to_uppercase()
+                        reverse_hex_string()
                     } else {
                         raw_hex_string.clone()
                     }
@@ -244,7 +246,7 @@ pub fn format_ipv4_string(ipv4_bytes: &[u8]) -> Result<String, ()> {
 }
 
 fn format_utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String, ()> {
-    let raw_iter = utf16_bytes.chunks_exact(2).into_iter();
+    let raw_iter = utf16_bytes.chunks_exact(2);
 
     if little_endian {
         let le_raw_data: Vec<u16> = raw_iter
@@ -314,7 +316,7 @@ impl Grammer {
         }
     }
 
-    pub fn parse_toml(&mut self, file_contents: &String) -> Result<&mut Grammer, ()> {
+    pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Grammer, ()> {
         match toml::from_str::<Grammer>(file_contents) {
             Ok(gram) => {
                 *self = gram;

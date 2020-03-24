@@ -17,8 +17,7 @@ fn main() -> Result<(), ()> {
     cmd_args.parse_cmd_args()?;
 
     match cmd_args.check_convert_flags() {
-        Ok(r) => match r {
-            Some(_) => {
+        Ok(r) => if r.is_some() {
                 cmd_args.parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?;
 
                 let mut c_struct = struct_convert::CStruct::new();
@@ -29,8 +28,6 @@ fn main() -> Result<(), ()> {
                     .write_toml_file(&cmd_args.output_filepath)?;
 
                 return Ok(());
-            }
-            None => (),
         },
         Err(_) => return Err(()),
     }

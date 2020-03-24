@@ -74,8 +74,7 @@ impl CMDArgParse {
             }
         };
 
-        match Path::new(&file_path).exists() {
-            true => {
+        if Path::new(&file_path).exists() {
                 match flag {
                     GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
                     BINARY_FILE_FLAG => self.binary_filepath = file_path,
@@ -83,15 +82,13 @@ impl CMDArgParse {
                     _ => (serror!(format!("The flag is not a file flag: {}", flag))),
                 }
                 Ok(self)
-            }
-            false => {
+            } else  {
                 serror!(format!(
                     "Could not find file {} for flag {}",
                     file_path, flag
                 ));
                 Err(())
             }
-        }
     }
 
     pub fn check_convert_flags(&mut self) -> Result<Option<&mut CMDArgParse>, ()> {

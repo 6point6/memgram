@@ -17,7 +17,7 @@ impl CStruct {
         }
     }
 
-    pub fn parse_c_struct(&mut self, struct_filepath: &String) -> Result<&mut CStruct, ()> {
+    pub fn parse_c_struct(&mut self, struct_filepath: &str) -> Result<&mut CStruct, ()> {
         let mut prev_index: usize = 0;
         let mut next_index: usize = 0;
 
@@ -31,7 +31,7 @@ impl CStruct {
             }
         };
 
-        next_index += match struct_string[prev_index..].find("{") {
+        next_index += match struct_string[prev_index..].find('{') {
             Some(matched_index) => matched_index + prev_index,
             None => {
                 serror!("Invalid C struct: could not find opening '{'");
@@ -49,14 +49,14 @@ impl CStruct {
 
         let struct_name: &str = &struct_string[prev_index..next_index];
 
-        self.name = struct_name.clone().trim().to_string();
+        self.name = struct_name.trim().to_string();
 
         let words = struct_string[next_index + 1..last_index].split_ascii_whitespace();
 
         let mut entry_num = 0;
 
         for word in words {
-            if word.ends_with(";") {
+            if word.ends_with(';') {
                 match self.fields.get_mut(entry_num) {
                     Some(value) => {
                         value.1.push_str(&word[..word.len() - 1]);
@@ -104,7 +104,7 @@ impl CStruct {
         Ok(self)
     }
 
-    pub fn write_toml_file(&mut self, output_path: &String) -> Result<&mut CStruct, ()> {
+    pub fn write_toml_file(&mut self, output_path: &str) -> Result<&mut CStruct, ()> {
         let mut grammer_file = match File::create(output_path) {
             Ok(f) => f,
             Err(e) => {
@@ -130,7 +130,7 @@ impl CStruct {
     }
 }
 
-fn get_field_size(field_type: &String) -> Result<&str, ()> {
+fn get_field_size(field_type: &str) -> Result<&str, ()> {
     let l_field_type = field_type.to_lowercase();
     match &l_field_type[..] {
         "char" | "signed char" | "unsigned char" => Ok("0x01"),
