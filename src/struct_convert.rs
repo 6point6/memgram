@@ -95,7 +95,7 @@ impl CStruct {
             self.toml_string
                 .push_str(&format!("\tname = '{}'\r\n", field.1));
             self.toml_string
-                .push_str(&format!("\tsize = '{}'\r\n", get_field_size(&field.0)?));
+                .push_str(&format!("\tsize = {}\r\n", get_field_size(&field.0)?));
             self.toml_string
                 .push_str(&format!("\tdata_type = '{}'\r\n", field.0));
             self.toml_string.push_str("\tdisplay_format = 'hex'\r\n");

@@ -95,7 +95,6 @@
 
 [[fields]]
     name = "Large Number of Sectors"
-    
     size = 0x04
     data_type = "sizele"
     display_format = 'hexle'
