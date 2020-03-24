@@ -352,9 +352,17 @@ impl Grammer {
                 None => return Ok(self),
             };
 
-            let multiple: u32 = match file_contents[search_index + 13..search_index + 14]
+            let next_line_index = match file_contents[search_index + 13..].find("\r\n") {
+                Some(matched_index) => matched_index + search_index + 13,
+                None => {
+                    serror!("Could not find CRLF after field multiplier");
+                    return Err(());
+                }
+            };
+
+            let multiple: u32 = match file_contents[search_index + 13..next_line_index]
                 .trim()
-                .parse()
+                .parse::<u32>()
             {
                 Ok(mul) => mul,
                 Err(_) => {

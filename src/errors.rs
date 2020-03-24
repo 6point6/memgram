@@ -7,7 +7,6 @@ macro_rules! serror {
             $cause,
             line!(),
             file!(),
-            // backtrace::Backtrace::new()
         );
     };
 }
