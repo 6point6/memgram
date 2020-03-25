@@ -40,9 +40,9 @@ pub struct GrammerFields {
 }
 
 pub struct TableData {
-    field_hashmap: HashMap<String, Vec<u8>>,
+    pub field_hashmap: HashMap<String, Vec<u8>>,
     field_fmt_hashmap: HashMap<String, String>,
-    field_raw_hashmap: HashMap<String, String>,
+    field_str_hashmap: HashMap<String, String>,
     description_table: Table,
     standard_table: Table,
 }
@@ -57,7 +57,7 @@ impl TableData {
         TableData {
             field_hashmap: HashMap::new(),
             field_fmt_hashmap: HashMap::new(),
-            field_raw_hashmap: HashMap::new(),
+            field_str_hashmap: HashMap::new(),
             description_table: Table::new(),
             standard_table: Table::new(),
         }
@@ -86,7 +86,7 @@ impl TableData {
         ]);
 
         for (index, field) in parsed_gram.fields.iter().enumerate() {
-            let raw_hex_string = self.field_raw_hashmap.get(&field.name).ok_or_else(|| {
+            let raw_hex_string = self.field_str_hashmap.get(&field.name).ok_or_else(|| {
                 serror!(format!("Could not get value for field: {}", field.name));
             })?;
 
@@ -165,7 +165,7 @@ impl TableData {
     pub fn format_fields(
         &mut self,
         parsed_gram: &Grammar,
-        reverse_endian_flag: bool,
+        fmt_endian_flag: bool,
     ) -> Result<&mut TableData, ()> {
         for field in parsed_gram.fields.iter() {
             let mut raw_hex_string: String = self
@@ -180,7 +180,7 @@ impl TableData {
                 raw_hex_string.push_str("...");
             }
 
-            self.field_raw_hashmap
+            self.field_str_hashmap
                 .insert(field.name.clone(), raw_hex_string.clone());
 
             let raw_data: &Vec<u8> = self.field_hashmap.get(&field.name).ok_or_else(|| {
@@ -215,7 +215,7 @@ impl TableData {
                     }
                 }
                 _ => {
-                    if reverse_endian_flag {
+                    if fmt_endian_flag {
                         reverse_hex_string()
                     } else {
                         raw_hex_string.clone()

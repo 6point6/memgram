@@ -8,7 +8,8 @@ pub const CSTRUCT_FILE_FLAG: &str = "-c";
 pub const OUTPUT_FILE_FLAG: &str = "-o";
 pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-s";
-pub const ENDIAN_FLAG: &str = "-e";
+pub const FMT_ENDIAN_FLAG: &str = "-e";
+pub const HEX_ENDIAN_FLAG: &str = "-E";
 
 pub struct CMDArgParse {
     raw_args: Vec<String>,
@@ -18,7 +19,8 @@ pub struct CMDArgParse {
     pub cstruct_filepath: String,
     pub output_filepath: String,
     pub struct_offset: u64,
-    pub reverse_endian: bool,
+    pub fmt_endian: bool,
+    pub hex_endian: bool,
 }
 
 pub enum CMDOptions {
@@ -37,7 +39,8 @@ impl CMDArgParse {
             cstruct_filepath: String::from(""),
             output_filepath: String::from(""),
             struct_offset: 0,
-            reverse_endian: false,
+            fmt_endian: false,
+            hex_endian: false,
         }
     }
 
@@ -145,12 +148,18 @@ impl CMDArgParse {
         }
     }
 
-    pub fn parse_endian_flag(&mut self, endian_flag: &str) -> &mut CMDArgParse {
-        if self.arg_map.contains_key(endian_flag) {
-            self.reverse_endian = true;
-            self
-        } else {
-            self
+    pub fn parse_endian_flags(
+        &mut self,
+        fmt_endian_flag: &str,
+        hex_endian_flag: &str,
+    ) -> &mut CMDArgParse {
+        if self.arg_map.contains_key(fmt_endian_flag) {
+            self.fmt_endian = true
         }
+
+        if self.arg_map.contains_key(hex_endian_flag) {
+            self.hex_endian = true
+        }
+        self
     }
 }

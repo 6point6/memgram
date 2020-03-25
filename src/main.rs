@@ -41,7 +41,7 @@ fn run() -> Result<(), ()> {
                     .parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?
                     .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
                     .parse_offset_flag(arg_parse::OFFSET_FLAG)?
-                    .parse_endian_flag(arg_parse::ENDIAN_FLAG);
+                    .parse_endian_flags(arg_parse::FMT_ENDIAN_FLAG, arg_parse::HEX_ENDIAN_FLAG);
 
                 c_struct
                     .parse_c_struct(&cmd_args.cstruct_filepath)?
@@ -57,14 +57,15 @@ fn run() -> Result<(), ()> {
 
                 table_data
                     .create_field_hashmap(&parsed_gram, &cmd_args)?
-                    .format_fields(&parsed_gram, cmd_args.reverse_endian)?
+                    .format_fields(&parsed_gram, cmd_args.fmt_endian)?
                     .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
                     .print_table(gram_parse::Tables::Standard);
 
                 hex_display::print_hex_table(
                     &parsed_gram,
-                    &cmd_args.binary_filepath,
+                    &table_data.field_hashmap,
                     cmd_args.struct_offset as usize,
+                    cmd_args.hex_endian,
                 )?;
 
                 Ok(())
@@ -74,7 +75,7 @@ fn run() -> Result<(), ()> {
                     .parse_file_flag(arg_parse::GRAMMER_FILE_FLAG)?
                     .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
                     .parse_offset_flag(arg_parse::OFFSET_FLAG)?
-                    .parse_endian_flag(arg_parse::ENDIAN_FLAG);
+                    .parse_endian_flags(arg_parse::FMT_ENDIAN_FLAG, arg_parse::HEX_ENDIAN_FLAG);
 
                 let mut file_contents = file_parse::FileData::new();
 
@@ -93,14 +94,15 @@ fn run() -> Result<(), ()> {
 
                 table_data
                     .create_field_hashmap(&parsed_gram, &cmd_args)?
-                    .format_fields(&parsed_gram, cmd_args.reverse_endian)?
+                    .format_fields(&parsed_gram, cmd_args.fmt_endian)?
                     .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
                     .print_table(gram_parse::Tables::Standard);
 
                 hex_display::print_hex_table(
                     &parsed_gram,
-                    &cmd_args.binary_filepath,
+                    &table_data.field_hashmap,
                     cmd_args.struct_offset as usize,
+                    cmd_args.hex_endian,
                 )?;
 
                 Ok(())

@@ -1,43 +1,33 @@
 use crate::gram_parse;
 use hexplay::HexViewBuilder;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::SeekFrom;
+use std::collections::HashMap;
 
 pub fn print_hex_table(
     parsed_gram: &gram_parse::Grammar,
-    binary_path: &str,
+    field_hashmap: &HashMap<String, Vec<u8>>,
     field_offset: usize,
+    hex_endianess: bool,
 ) -> Result<(), ()> {
-    let mut binary_file = match File::open(binary_path) {
-        Ok(file) => file,
-        Err(e) => {
-            serror!(format!(
-                "Error opening file: {}, because {}",
-                binary_path, e
-            ));
-            return Err(());
-        }
-    };
-
-    match binary_file.seek(SeekFrom::Start(field_offset as u64)) {
-        Ok(_) => (),
-        Err(e) => {
-            serror!(format!(
-                "Could not seek to offset: {}, because {}",
-                field_offset, e
-            ));
-            return Err(());
-        }
-    }
-
     let struct_size = parsed_gram.get_struct_size();
 
-    let raw_data: Vec<u8> = binary_file
-        .bytes()
-        .take(struct_size)
-        .map(|r: Result<u8, _>| r.unwrap())
-        .collect();
+    let mut hex_data: Vec<u8> = Vec::new();
+
+    for field in parsed_gram.fields.iter() {
+        let mut data: Vec<u8> = field_hashmap
+            .get(&field.name)
+            .ok_or_else(|| {
+                serror!(format!("Could not get value for field: {}", field.name));
+            })?
+            .clone();
+
+        if hex_endianess {
+            if &field.display_format[..] != gram_parse::ASCII_TYPE {
+                data.reverse()
+            }
+        }
+
+        hex_data.append(&mut data);
+    }
 
     let mut color_vector = Vec::new();
 
@@ -58,7 +48,7 @@ pub fn print_hex_table(
         color_offset += field.size;
     }
 
-    let hex_view = HexViewBuilder::new(&raw_data[..struct_size])
+    let hex_view = HexViewBuilder::new(&hex_data[..struct_size])
         .address_offset(field_offset)
         .row_width(0x10)
         .add_colors(color_vector)
