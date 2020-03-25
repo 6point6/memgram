@@ -61,7 +61,7 @@ fn run() -> Result<(), ()> {
         .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
         .print_table(gram_parse::Tables::Standard);
 
-    hex_display::print_hex_table(&mut parsed_gram, &cmd_args.binary_filepath,cmd_args.struct_offset as usize)?;
+    hex_display::print_hex_table(&parsed_gram, &cmd_args.binary_filepath,cmd_args.struct_offset as usize)?;
 
     Ok(())
 }

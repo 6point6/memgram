@@ -142,7 +142,7 @@ impl TableData {
             binary_file,
             &cmd_args.binary_filepath,
             cmd_args.struct_offset,
-            parsed_gram,
+            parsed_gram.get_struct_size() as u64,
         )?;
 
         binary_file
@@ -279,15 +279,9 @@ fn check_filesize(
     binary_file: &mut File,
     binary_path: &str,
     struct_offset: u64,
-    parsed_gram: &Grammer,
+    struct_size: u64,
 ) -> Result<(), ()> {
     let file_size = binary_file.seek(SeekFrom::End(0)).unwrap();
-
-    let mut struct_size: u64 = 0;
-
-    for field in &parsed_gram.fields {
-        struct_size += field.size as u64;
-    }
 
     if file_size >= struct_offset + struct_size {
         Ok(())
@@ -337,7 +331,7 @@ impl Grammer {
         Ok(self)
     }
 
-    pub fn get_struct_size(&mut self) -> usize {
+    pub fn get_struct_size(&self) -> usize {
         let mut struct_size: usize = 0;
 
         for field in &self.fields {

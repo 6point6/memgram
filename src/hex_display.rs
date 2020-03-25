@@ -4,11 +4,11 @@ use std::io::prelude::*;
 use crate::gram_parse;
 
 pub fn print_hex_table(
-    parsed_gram: &mut gram_parse::Grammer,
+    parsed_gram: &gram_parse::Grammer,
     binary_path: &str,
     mut field_offset: usize,
 ) -> Result<(), ()> {
-
+    
     let binary_file = match File::open(binary_path) {
         Ok(file) => file,
         Err(e) => {
