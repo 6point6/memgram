@@ -12,11 +12,12 @@ macro_rules! serror {
 }
 
 const USAGE_STRING: &str = "memgram [OPTION] [VALUE]";
-const OPTIONS: [&str; 6] = [
+const OPTIONS: [&str; 7] = [
     "-g     grammar filepath",
     "-b     binary filepath",
     "-s     offset into binary the file structure starts at",
-    "-e     reverse the endianess for formatted data",
+    "-e     reverse the endianess for table formatted data",
+    "-E     reverse the endianess for hex view formatted data",
     "-c     c struct filepath",
     "-o     output filepath for conversion",
 ];
