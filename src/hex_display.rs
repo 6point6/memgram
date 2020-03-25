@@ -5,26 +5,29 @@ use std::io::prelude::*;
 use std::io::SeekFrom;
 
 pub fn print_hex_table(
-    parsed_gram: &gram_parse::Grammer,
+    parsed_gram: &gram_parse::Grammar,
     binary_path: &str,
     field_offset: usize,
 ) -> Result<(), ()> {
-    let mut  binary_file = match File::open(binary_path) {
+    let mut binary_file = match File::open(binary_path) {
         Ok(file) => file,
         Err(e) => {
             serror!(format!(
                 "Error opening file: {}, because {}",
                 binary_path, e
             ));
-            return Err(())
+            return Err(());
         }
     };
 
     match binary_file.seek(SeekFrom::Start(field_offset as u64)) {
-        Ok (_) => (),
+        Ok(_) => (),
         Err(e) => {
-            serror!(format!("Could not seek to offset: {}, because {}",field_offset,e));
-            return Err(())
+            serror!(format!(
+                "Could not seek to offset: {}, because {}",
+                field_offset, e
+            ));
+            return Err(());
         }
     }
 

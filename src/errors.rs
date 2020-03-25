@@ -3,7 +3,7 @@
 macro_rules! serror {
     ($cause:expr) => {
         eprintln!(
-            "[-] Error: \n\t- Cause: {}\n\t- Line: {}\n\t- File: {}",
+            "[-] Error: \n\t- Cause: {}\n\t- Line: {}\n\t- File: {}\n",
             $cause,
             line!(),
             file!(),
@@ -13,17 +13,18 @@ macro_rules! serror {
 
 const USAGE_STRING: &str = "memgram [OPTION] [VALUE]";
 const OPTIONS: [&str; 6] = [
-    "-g     grammer filepath",
+    "-g     grammar filepath",
     "-b     binary filepath",
-    "-o     offset into binary file structure starts at",
+    "-s     offset into binary file structure starts at",
     "-e     reverse endianess for formatted data",
     "-c     c struct filepath for conversion",
     "-o     output filepath for conversion",
 ];
 
-const EXAMPLES: [&str; 2] = [
-    "memgram -b ./examples/test_formats.bin -g ./grammer/test_formats.toml -o 0",
-    "memgram -c ./examples/COFFHeader.h -o ./grammer/COFFHeader.toml",
+const EXAMPLES: [&str; 3] = [
+    "memgram -b ./examples/test_formats.bin -g ./grammar/test_formats.toml -o 0",
+    "memgram -c ./examples/COFFHeader.h -o ./grammar/COFFHeader.toml",
+    "memgram -c ./examples/COFFHeader.h -b .~/Downloads/binary.exe -o 244 -e",
 ];
 
 pub fn usage() {

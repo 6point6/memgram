@@ -21,9 +21,10 @@ pub struct CMDArgParse {
     pub reverse_endian: bool,
 }
 
-pub enum ConvertOptions {
+pub enum CMDOptions {
     ConvertWrite,
     ConvertDisplay,
+    DisplayNormal,
 }
 
 impl CMDArgParse {
@@ -91,14 +92,31 @@ impl CMDArgParse {
         }
     }
 
-    pub fn check_convert_flags(&mut self) -> Result<ConvertOptions, ()> {
-        if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG) {
-            Err(())
+    pub fn run_cmds(&mut self) -> Result<CMDOptions, ()> {
+        if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
+            && self.arg_map.contains_key(GRAMMER_FILE_FLAG)
+            && self.arg_map.contains_key(OFFSET_FLAG)
+            && self.arg_map.contains_key(BINARY_FILE_FLAG)
+        {
+            Ok(CMDOptions::DisplayNormal)
         } else {
-            if !self.arg_map.contains_key(BINARY_FILE_FLAG) {
-                return Ok(ConvertOptions::ConvertWrite);
+            if self.arg_map.contains_key(OUTPUT_FILE_FLAG)
+                && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
+                && !self.arg_map.contains_key(OFFSET_FLAG)
+                && !self.arg_map.contains_key(BINARY_FILE_FLAG)
+            {
+                return Ok(CMDOptions::ConvertWrite);
+            } else if self.arg_map.contains_key(BINARY_FILE_FLAG)
+                && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
+                && self.arg_map.contains_key(OFFSET_FLAG)
+                && !self.arg_map.contains_key(OUTPUT_FILE_FLAG)
+                && !self.arg_map.contains_key(GRAMMER_FILE_FLAG)
+            {
+                return Ok(CMDOptions::ConvertDisplay);
             } else {
-                return Ok(ConvertOptions::ConvertDisplay);
+                serror!("Unsupported flag combination");
+                errors::usage();
+                Err(())
             }
         }
     }

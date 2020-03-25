@@ -20,7 +20,7 @@ pub const UTF16BE_TYPE: &str = "utf16le";
 pub const X86_TYPE: &str = "x86_32";
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Grammer {
+pub struct Grammar {
     pub metadata: GrammerMetadata,
     pub fields: Vec<GrammerFields>,
 }
@@ -72,7 +72,7 @@ impl TableData {
 
     pub fn fill_standard_table(
         &mut self,
-        parsed_gram: &Grammer,
+        parsed_gram: &Grammar,
         mut struct_offset: usize,
     ) -> Result<&mut TableData, ()> {
         self.standard_table.add_row(row![
@@ -111,7 +111,7 @@ impl TableData {
         Ok(self)
     }
 
-    pub fn fill_description_table(&mut self, parsed_gram: &Grammer) -> &mut TableData {
+    pub fn fill_description_table(&mut self, parsed_gram: &Grammar) -> &mut TableData {
         self.description_table
             .add_row(row!["ID", "Field", "Description"]);
 
@@ -132,7 +132,7 @@ impl TableData {
 
     pub fn create_field_hashmap(
         &mut self,
-        parsed_gram: &Grammer,
+        parsed_gram: &Grammar,
         cmd_args: &arg_parse::CMDArgParse,
     ) -> Result<&mut TableData, ()> {
         let binary_file: &mut File = &mut File::open(&cmd_args.binary_filepath)
@@ -164,7 +164,7 @@ impl TableData {
 
     pub fn format_fields(
         &mut self,
-        parsed_gram: &Grammer,
+        parsed_gram: &Grammar,
         reverse_endian_flag: bool,
     ) -> Result<&mut TableData, ()> {
         for field in parsed_gram.fields.iter() {
@@ -304,21 +304,21 @@ impl GrammerMetadata {
     }
 }
 
-impl Grammer {
-    pub fn new() -> Grammer {
-        Grammer {
+impl Grammar {
+    pub fn new() -> Grammar {
+        Grammar {
             metadata: GrammerMetadata::new(),
             fields: Vec::new(),
         }
     }
 
-    pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Grammer, ()> {
-        match toml::from_str::<Grammer>(file_contents) {
+    pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Grammar, ()> {
+        match toml::from_str::<Grammar>(file_contents) {
             Ok(gram) => {
                 *self = gram;
             }
             Err(_) => {
-                serror!("Could not parse grammer file");
+                serror!("Could not parse grammar file");
                 return Err(());
             }
         }
@@ -343,12 +343,12 @@ impl Grammer {
         struct_size
     }
 
-    pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
+    pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
         self.expand_fields(file_contents)?;
         Ok(self)
     }
 
-    fn expand_fields(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
+    fn expand_fields(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
         let mut search_index: usize = 0;
 
         loop {

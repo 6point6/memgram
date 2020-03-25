@@ -119,7 +119,7 @@ impl CStruct {
         match grammer_file.write_all(self.toml_string.as_bytes()) {
             Ok(_) => {
                 println!(
-                    "[+] Successfully converted C struct {} to grammer file {}",
+                    "[+] Successfully converted C struct {} to grammar file {}",
                     self.name, output_path
                 );
                 Ok(self)
