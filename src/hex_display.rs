@@ -1,19 +1,21 @@
+use crate::gram_parse;
 use hexplay::HexViewBuilder;
 use std::fs::File;
 use std::io::prelude::*;
-use crate::gram_parse;
 
 pub fn print_hex_table(
     parsed_gram: &gram_parse::Grammer,
     binary_path: &str,
     mut field_offset: usize,
 ) -> Result<(), ()> {
-    
     let binary_file = match File::open(binary_path) {
         Ok(file) => file,
         Err(e) => {
-            serror!(format!("Error opening file: {}, because {}",binary_path,e));
-            return Err(())
+            serror!(format!(
+                "Error opening file: {}, because {}",
+                binary_path, e
+            ));
+            return Err(());
         }
     };
 
@@ -23,7 +25,7 @@ pub fn print_hex_table(
         .bytes()
         .take(struct_size)
         .map(|r: Result<u8, _>| r.unwrap())
-        .collect(); 
+        .collect();
 
     let mut color_vector = Vec::new();
 
@@ -31,11 +33,11 @@ pub fn print_hex_table(
         match index % 2 {
             0 => color_vector.append(&mut vec![(
                 hexplay::color::green_bold(),
-                field_offset..field_offset+ field.size,
+                field_offset..field_offset + field.size,
             )]),
             _ => color_vector.append(&mut vec![(
                 hexplay::color::magenta_bold(),
-                field_offset..field_offset+ field.size,
+                field_offset..field_offset + field.size,
             )]),
         };
 

@@ -3,13 +3,13 @@ mod errors;
 mod arg_parse;
 mod file_parse;
 mod gram_parse;
-mod struct_convert;
 mod hex_display;
+mod struct_convert;
 
 #[macro_use]
 extern crate prettytable;
 
-fn main()  {
+fn main() {
     if let Err(()) = run() {}
 }
 
@@ -19,7 +19,8 @@ fn run() -> Result<(), ()> {
     cmd_args.parse_cmd_args()?;
 
     match cmd_args.check_convert_flags() {
-        Ok(r) => if r.is_some() {
+        Ok(r) => {
+            if r.is_some() {
                 cmd_args.parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?;
 
                 let mut c_struct = struct_convert::CStruct::new();
@@ -29,8 +30,9 @@ fn run() -> Result<(), ()> {
                     .build_toml_string()?
                     .write_toml_file(&cmd_args.output_filepath)?;
 
-                return Ok(())
-        },
+                return Ok(());
+            }
+        }
         Err(_) => return Err(()),
     }
 
@@ -61,7 +63,11 @@ fn run() -> Result<(), ()> {
         .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
         .print_table(gram_parse::Tables::Standard);
 
-    hex_display::print_hex_table(&parsed_gram, &cmd_args.binary_filepath,cmd_args.struct_offset as usize)?;
+    hex_display::print_hex_table(
+        &parsed_gram,
+        &cmd_args.binary_filepath,
+        cmd_args.struct_offset as usize,
+    )?;
 
     Ok(())
 }

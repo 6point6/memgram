@@ -162,7 +162,11 @@ impl TableData {
         Ok(self)
     }
 
-    pub fn format_fields(&mut self, parsed_gram: &Grammer, reverse_endian_flag: bool) -> Result<&mut TableData, ()> {
+    pub fn format_fields(
+        &mut self,
+        parsed_gram: &Grammer,
+        reverse_endian_flag: bool,
+    ) -> Result<&mut TableData, ()> {
         for field in parsed_gram.fields.iter() {
             let mut raw_hex_string: String = self
                 .field_hashmap
@@ -190,9 +194,7 @@ impl TableData {
             };
 
             let formatted_data = match &field.display_format[..] {
-                HEXLE_TYPE => {
-                    reverse_hex_string()
-                }
+                HEXLE_TYPE => reverse_hex_string(),
                 ASCII_TYPE => raw_data.iter().map(|ascii| *ascii as char).collect(),
                 IPV4BE_TYPE => format_ipv4_string(&raw_data)?,
                 IPV4LE_TYPE => {
@@ -218,7 +220,7 @@ impl TableData {
                     } else {
                         raw_hex_string.clone()
                     }
-                },
+                }
             };
             self.field_fmt_hashmap
                 .insert(field.name.clone(), formatted_data);
@@ -317,13 +319,13 @@ impl Grammer {
             }
             Err(_) => {
                 serror!("Could not parse grammer file");
-                return Err(())
+                return Err(());
             }
         }
 
         let mut field_id: u32 = 0;
 
-        for field in &mut self.fields{
+        for field in &mut self.fields {
             field.name.push_str(&format!("{:03X}", field_id)[..]);
             field_id += 1;
         }
@@ -343,7 +345,6 @@ impl Grammer {
 
     pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammer, ()> {
         self.expand_fields(file_contents)?;
-
         Ok(self)
     }
 
@@ -360,7 +361,7 @@ impl Grammer {
                 Some(matched_index) => matched_index + search_index + 13,
                 None => {
                     serror!("Could not find CRLF after field multiplier");
-                    return Err(())
+                    return Err(());
                 }
             };
 
@@ -371,19 +372,15 @@ impl Grammer {
                 Ok(mul) => mul,
                 Err(_) => {
                     serror!("Could not parse field multiplier");
-                    return Err(())
+                    return Err(());
                 }
             };
 
             file_contents.replace_range(search_index + 10..next_line_index, "    ");
 
-            let field_end_index: usize = match file_contents[search_index..].find("\r\n\r\n") {
-                Some(matched_index) => matched_index,
-                None => {
-                    serror!("Could not find CRLF after multiplied field");
-                    return Err(())
-                }
-            };
+            let field_end_index: usize = file_contents[search_index..]
+                .find("\r\n\r\n")
+                .ok_or_else(|| serror!("Could not find CRLF after multiplied field"))?;
 
             let mut multiplied_field = String::from("");
 

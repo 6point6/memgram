@@ -18,7 +18,7 @@ const OPTIONS: [&str; 6] = [
     "-o     offset into binary file structure starts at",
     "-e     reverse endianess for formatted data",
     "-c     c struct filepath for conversion",
-    "-o     output filepath for conversion"
+    "-o     output filepath for conversion",
 ];
 
 const EXAMPLES: [&str; 2] = [
@@ -26,7 +26,9 @@ const EXAMPLES: [&str; 2] = [
     "memgram -c ./examples/COFFHeader.h -o ./grammer/COFFHeader.toml",
 ];
 
-
 pub fn usage() {
-    println!("USAGE: {:}\n\nOPTIONS:\n{:#?}\n\nEXAMPLE:\n{:#?}",USAGE_STRING,OPTIONS,EXAMPLES);
+    println!(
+        "USAGE: {:}\n\nOPTIONS:\n{:#?}\n\nEXAMPLE:\n{:#?}",
+        USAGE_STRING, OPTIONS, EXAMPLES
+    );
 }

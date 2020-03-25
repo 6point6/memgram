@@ -58,61 +58,51 @@ impl CMDArgParse {
     }
 
     pub fn parse_file_flag(&mut self, flag: &str) -> Result<&mut CMDArgParse, ()> {
-        let file_path_option = self
+        let file_path = self
             .arg_map
             .get(flag)
             .ok_or_else(|| {
                 serror!(format!("You need to specify a value for flag {}", flag));
             })?
-            .clone();
-
-        let file_path = match file_path_option {
-            Some(path) => path,
-            None => {
-                serror!(format!("A file path must be specified for flag: {}", flag));
-                return Err(())
-            }
-        };
+            .clone()
+            .ok_or_else(|| serror!(format!("A file path must be specified for flag: {}", flag)))?;
 
         if Path::new(&file_path).exists() {
-                match flag {
-                    GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
-                    BINARY_FILE_FLAG => self.binary_filepath = file_path,
-                    CSTRUCT_FILE_FLAG => self.cstruct_filepath = file_path,
-                    _ => (serror!(format!("The flag is not a file flag: {}", flag))),
-                }
-                Ok(self)
-            } else  {
-                serror!(format!(
-                    "Could not find file {} for flag {}",
-                    file_path, flag
-                ));
-                Err(())
+            match flag {
+                GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
+                BINARY_FILE_FLAG => self.binary_filepath = file_path,
+                CSTRUCT_FILE_FLAG => self.cstruct_filepath = file_path,
+                _ => (serror!(format!("The flag is not a file flag: {}", flag))),
             }
+            Ok(self)
+        } else {
+            serror!(format!(
+                "Could not find file {} for flag {}",
+                file_path, flag
+            ));
+            Err(())
+        }
     }
 
     pub fn check_convert_flags(&mut self) -> Result<Option<&mut CMDArgParse>, ()> {
         if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG) {
             Ok(None)
         } else {
-            let file_path_option = self
-            .arg_map
-            .get(OUTPUT_FILE_FLAG)
-            .ok_or_else(|| {
-                serror!("You must provide an output file for conversion");
-            })?
-            .clone();
-
-            self.output_filepath = match file_path_option {
-                Some(path) => path,
-                None => {
-                    serror!(format!("A file path must be specified for flag: {}", OUTPUT_FILE_FLAG));
-                    return Err(())
-                }
-            };
+            self.output_filepath = self
+                .arg_map
+                .get(OUTPUT_FILE_FLAG)
+                .ok_or_else(|| {
+                    serror!("You must provide an output file for conversion");
+                })?
+                .clone()
+                .ok_or_else(|| {
+                    serror!(format!(
+                        "A file path must be specified for flag: {}",
+                        OUTPUT_FILE_FLAG
+                    ))
+                })?;
 
             Ok(Some(self))
-  
         }
     }
 
