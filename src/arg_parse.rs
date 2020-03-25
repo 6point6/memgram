@@ -7,7 +7,7 @@ pub const GRAMMER_FILE_FLAG: &str = "-g";
 pub const CSTRUCT_FILE_FLAG: &str = "-c";
 pub const OUTPUT_FILE_FLAG: &str = "-o";
 pub const BINARY_FILE_FLAG: &str = "-b";
-pub const OFFSET_FLAG: &str = "-o";
+pub const OFFSET_FLAG: &str = "-s";
 pub const ENDIAN_FLAG: &str = "-e";
 
 pub struct CMDArgParse {
@@ -19,6 +19,11 @@ pub struct CMDArgParse {
     pub output_filepath: String,
     pub struct_offset: u64,
     pub reverse_endian: bool,
+}
+
+pub enum ConvertOptions {
+    ConvertWrite,
+    ConvertDisplay,
 }
 
 impl CMDArgParse {
@@ -63,6 +68,7 @@ impl CMDArgParse {
             .get(flag)
             .ok_or_else(|| {
                 serror!(format!("You need to specify a value for flag {}", flag));
+                panic!();
             })?
             .clone()
             .ok_or_else(|| serror!(format!("A file path must be specified for flag: {}", flag)))?;
@@ -72,6 +78,7 @@ impl CMDArgParse {
                 GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
                 BINARY_FILE_FLAG => self.binary_filepath = file_path,
                 CSTRUCT_FILE_FLAG => self.cstruct_filepath = file_path,
+                OUTPUT_FILE_FLAG => self.output_filepath = file_path,
                 _ => (serror!(format!("The flag is not a file flag: {}", flag))),
             }
             Ok(self)
@@ -84,25 +91,15 @@ impl CMDArgParse {
         }
     }
 
-    pub fn check_convert_flags(&mut self) -> Result<Option<&mut CMDArgParse>, ()> {
+    pub fn check_convert_flags(&mut self) -> Result<ConvertOptions, ()> {
         if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG) {
-            Ok(None)
+            Err(())
         } else {
-            self.output_filepath = self
-                .arg_map
-                .get(OUTPUT_FILE_FLAG)
-                .ok_or_else(|| {
-                    serror!("You must provide an output file for conversion");
-                })?
-                .clone()
-                .ok_or_else(|| {
-                    serror!(format!(
-                        "A file path must be specified for flag: {}",
-                        OUTPUT_FILE_FLAG
-                    ))
-                })?;
-
-            Ok(Some(self))
+            if !self.arg_map.contains_key(BINARY_FILE_FLAG) {
+                return Ok(ConvertOptions::ConvertWrite);
+            } else {
+                return Ok(ConvertOptions::ConvertDisplay);
+            }
         }
     }
 

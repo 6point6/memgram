@@ -2,22 +2,31 @@ use crate::gram_parse;
 use hexplay::HexViewBuilder;
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::SeekFrom;
 
 pub fn print_hex_table(
     parsed_gram: &gram_parse::Grammer,
     binary_path: &str,
     mut field_offset: usize,
 ) -> Result<(), ()> {
-    let binary_file = match File::open(binary_path) {
+    let mut  binary_file = match File::open(binary_path) {
         Ok(file) => file,
         Err(e) => {
             serror!(format!(
                 "Error opening file: {}, because {}",
                 binary_path, e
             ));
-            return Err(());
+            return Err(())
         }
     };
+
+    match binary_file.seek(SeekFrom::Start(field_offset as u64)) {
+        Ok (_) => (),
+        Err(e) => {
+            serror!(format!("Could not seek to offset: {}, because {}",field_offset,e));
+            return Err(())
+        }
+    }
 
     let struct_size = parsed_gram.get_struct_size();
 
@@ -29,7 +38,10 @@ pub fn print_hex_table(
 
     let mut color_vector = Vec::new();
 
+    let struct_offset = field_offset.clone();
+
     for (index, field) in parsed_gram.fields.iter().enumerate() {
+
         match index % 2 {
             0 => color_vector.append(&mut vec![(
                 hexplay::color::green_bold(),
@@ -45,7 +57,7 @@ pub fn print_hex_table(
     }
 
     let hex_view = HexViewBuilder::new(&raw_data[..struct_size])
-        .address_offset(0x00)
+        .address_offset(struct_offset)
         .row_width(0x10)
         .add_colors(color_vector)
         .finish();
