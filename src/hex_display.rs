@@ -7,7 +7,7 @@ use std::io::SeekFrom;
 pub fn print_hex_table(
     parsed_gram: &gram_parse::Grammer,
     binary_path: &str,
-    mut field_offset: usize,
+    field_offset: usize,
 ) -> Result<(), ()> {
     let mut  binary_file = match File::open(binary_path) {
         Ok(file) => file,
@@ -38,26 +38,25 @@ pub fn print_hex_table(
 
     let mut color_vector = Vec::new();
 
-    let struct_offset = field_offset.clone();
+    let mut color_offset: usize = 0;
 
     for (index, field) in parsed_gram.fields.iter().enumerate() {
-
         match index % 2 {
             0 => color_vector.append(&mut vec![(
                 hexplay::color::green_bold(),
-                field_offset..field_offset + field.size,
+                color_offset..color_offset + field.size,
             )]),
             _ => color_vector.append(&mut vec![(
                 hexplay::color::magenta_bold(),
-                field_offset..field_offset + field.size,
+                color_offset..color_offset + field.size,
             )]),
         };
 
-        field_offset += field.size;
+        color_offset += field.size;
     }
 
     let hex_view = HexViewBuilder::new(&raw_data[..struct_size])
-        .address_offset(struct_offset)
+        .address_offset(field_offset)
         .row_width(0x10)
         .add_colors(color_vector)
         .finish();
