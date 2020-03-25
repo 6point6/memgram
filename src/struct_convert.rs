@@ -27,7 +27,7 @@ impl CStruct {
             Some(matched_index) => matched_index + 7,
             None => {
                 serror!("Invalid C struct: could not find 'struct' keyword");
-                return Err(());
+                return Err(())
             }
         };
 
@@ -35,7 +35,7 @@ impl CStruct {
             Some(matched_index) => matched_index + prev_index,
             None => {
                 serror!("Invalid C struct: could not find opening '{'");
-                return Err(());
+                return Err(())
             }
         };
 
@@ -43,7 +43,7 @@ impl CStruct {
             Some(matched_index) => matched_index + next_index,
             None => {
                 serror!("Invalid C struct: could not find closing '};'");
-                return Err(());
+                return Err(())
             }
         };
 
@@ -67,7 +67,7 @@ impl CStruct {
                             "Type must be specified in C struct before field name: {}",
                             word
                         ));
-                        return Err(());
+                        return Err(())
                     }
                 }
             } else {
@@ -112,7 +112,7 @@ impl CStruct {
                     "Could not create/open file {}, because {} ",
                     output_path, e
                 ));
-                return Err(());
+                return Err(())
             }
         };
 

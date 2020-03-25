@@ -29,7 +29,7 @@ fn run() -> Result<(), ()> {
                     .build_toml_string()?
                     .write_toml_file(&cmd_args.output_filepath)?;
 
-                return Ok(());
+                return Ok(())
         },
         Err(_) => return Err(()),
     }

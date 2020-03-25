@@ -317,7 +317,7 @@ impl Grammer {
             }
             Err(_) => {
                 serror!("Could not parse grammer file");
-                return Err(());
+                return Err(())
             }
         }
 
@@ -360,7 +360,7 @@ impl Grammer {
                 Some(matched_index) => matched_index + search_index + 13,
                 None => {
                     serror!("Could not find CRLF after field multiplier");
-                    return Err(());
+                    return Err(())
                 }
             };
 
@@ -371,7 +371,7 @@ impl Grammer {
                 Ok(mul) => mul,
                 Err(_) => {
                     serror!("Could not parse field multiplier");
-                    return Err(());
+                    return Err(())
                 }
             };
 
@@ -381,7 +381,7 @@ impl Grammer {
                 Some(matched_index) => matched_index,
                 None => {
                     serror!("Could not find CRLF after multiplied field");
-                    return Err(());
+                    return Err(())
                 }
             };
 

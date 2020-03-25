@@ -70,7 +70,7 @@ impl CMDArgParse {
             Some(path) => path,
             None => {
                 serror!(format!("A file path must be specified for flag: {}", flag));
-                return Err(());
+                return Err(())
             }
         };
 
@@ -107,7 +107,7 @@ impl CMDArgParse {
                 Some(path) => path,
                 None => {
                     serror!(format!("A file path must be specified for flag: {}", OUTPUT_FILE_FLAG));
-                    return Err(());
+                    return Err(())
                 }
             };
 
