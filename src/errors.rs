@@ -15,9 +15,9 @@ const USAGE_STRING: &str = "memgram [OPTION] [VALUE]";
 const OPTIONS: [&str; 6] = [
     "-g     grammar filepath",
     "-b     binary filepath",
-    "-s     offset into binary file structure starts at",
-    "-e     reverse endianess for formatted data",
-    "-c     c struct filepath for conversion",
+    "-s     offset into binary the file structure starts at",
+    "-e     reverse the endianess for formatted data",
+    "-c     c struct filepath",
     "-o     output filepath for conversion",
 ];
 
