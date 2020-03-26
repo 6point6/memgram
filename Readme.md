@@ -7,13 +7,13 @@
   <a href="#key-features">Key Features</a> •
   <a href="#grammar-format">Grammar Format</a> •
   <a href="#installation">Installation</a> •
-  <a href="#usage-examples">How To Use</a> •
+  <a href="#usage-examples">Usage Examples</a> •
   <a href="#limitations">Limitations</a> 
 </p>
 
 # About
 
-`memgram` has been developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse engineering can be quickly described in an easily readable TOML like format called a grammar. `memgram` applies these grammars to custom data structures in files and displays formatted prettified output of data.
+`memgram` has been developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse engineering can be quickly described in an easily readable TOML like format called a grammar. `memgram` reads a file containing a custom data structure, applies a grammar and displays formatted prettified output of data.
 
 `memgram` is heavily inspired by the hex editors:
 * [Synalyze It!](https://www.synalysis.net/)
@@ -29,7 +29,7 @@
 
 ### Coloured Formatted Output
 
-If supported display types are specified in a grammar, the "Formatted Data" coloumn will display the formatted data.
+If a supported display type is specified in a grammar, the "Formatted Data" coloumn will display the format the data based on the display type.
 The current supported types are:
 
 * hexle - Display data in little endian hex string format
@@ -40,17 +40,19 @@ The current supported types are:
 * utf16le - Display data in UTF16 little endian format
 * x86_32 - Display x86_32 assembly format)
 
-If a display type not listed above is used, `memgram` will default to formating data as a hex string in native endianess. The endianess of this default format can be changed without affecting the supported types in both the table and hex views using the `-e` and `-E` flags respectively.
+If a display type not listed above is used, `memgram` will default to formating data as a hex string in native endianess. The endianess of this default format can be changed without affecting the supported display types in both the table and hex views when using the `-e` and `-E` flags respectively.
 
 <img src="https://github.com/6point6/memgram/blob/master/images/test_format.png" width="640" />
 
 ### C Struct Support
-C structs can be converted to the grammar format, with support for C basic types. Due to the fact that C basic types may have different sizes depending on the system the code is compiled on, the the most common size for each type has been selected (e.g short is 2 bytes). The structs can either be converted to a grammar file or used directly to display data with the option of reversing endianess.
+
+C structs containing basic types can be converted to a grammar file. C basic types may have different sizes depending on the system code is compiled on, however the most common size for each type has been selected (e.g short is 2 bytes). The structs can either be converted to a grammar file or used directly to display data with the option of reversing endianess.
 
 <img src="https://github.com/6point6/memgram/blob/master/images/c_struct_example.png" width="640" />
 
 ### Multipliying Field Entries
-To save typing it's possible to multiply an entry x number of times, for example below is the entire grammar for `Master Boot Record` structure:
+
+To save typing it's possible to multiply a grammar entry x number of times. For example below is the entire grammar for the `Master Boot Record` structure:
 
 ```toml
 [metadata]
@@ -121,7 +123,7 @@ Additionally, specifiying a multiplier for an entry is possible. A multiplier te
     description = 'MBR partition entry'
 ```
 
-A multiplier is specfied by adding `* x` of after a `[[fields]]` entry where x is the number of times you wish to repeat the entry.
+A multiplier is specfied by adding `* x` after a `[[fields]]` entry, where x is the number of times you wish to repeat the entry.
 
 ## Installation
 
