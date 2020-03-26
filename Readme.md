@@ -12,7 +12,9 @@
 </p>
 
 # About
+
 Custom data structures can be quickly described in a human readable toml like format called a grammar. `memgram` can apply a grammar to an offset in a file and provide formatted and color coded output of data. Examples of output are given in the Key Features section below.
 
 ## Key Features
-* 
+
+`memgram` allows for human readable description of file formats.
