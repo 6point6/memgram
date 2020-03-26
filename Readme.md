@@ -13,10 +13,19 @@
 
 # About
 
-Custom data structures can be quickly described in a human readable toml like format called a grammar. `memgram` can apply a grammar to an offset in a file and provide formatted and color coded output of data. Examples of output are given in the Key Features section below.
+`memgram` was developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse enginneering can be quickly described in an easiliy readable toml like format called a grammar. `memgram` applies these grammars to the custom data structures in files and provides formatted prettyfied output of data.
 
 ## Key Features
 
-`memgram` allows for human readable description of file formats.
+### Grammar Format
 
-![grammar example](https://github.com/6point6/memgram/blob/master/images/grammar_example.png)
+`memgram` utilises easily readable file format descriptions called grammars.
+
+<img src="https://github.com/6point6/memgram/blob/master/images/grammar_example.png" width="640" height="640" />
+
+### Colored formatted output
+
+`memgram` colors outputted data in both the table view and hex view. If supported types are
+specified, it also formats the data (e.g An ipv4 address).
+
+<img src="https://github.com/6point6/memgram/blob/master/images/test_format.png" width="640" height="640" />
