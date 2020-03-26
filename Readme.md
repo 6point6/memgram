@@ -18,3 +18,5 @@ Custom data structures can be quickly described in a human readable toml like fo
 ## Key Features
 
 `memgram` allows for human readable description of file formats.
+
+![grammar example](https://github.com/6point6/memgram/blob/master/images/grammar_example.png)
