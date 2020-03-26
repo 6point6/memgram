@@ -29,8 +29,9 @@
 
 ### Coloured Formatted Output
 
-If a supported display type is specified in a grammar, the "Formatted Data" coloumn will display the format the data based on the display type.
-The current supported types are:
+If a supported display type is specified in a grammar, the "Formatted Data" coloumn will display formatted data based on the display type.
+
+Currently supported types:
 
 * hexle - Display data in little endian hex string format
 * ascii - Display data in ASCII format
@@ -82,7 +83,7 @@ To save typing it's possible to multiply a grammar entry x number of times. For 
 
 ## Grammar Format
 
-Grammars describe the data `memgram` reads, formats and displays. Grammars are written in a TOML like format, infact the format is almost identical apart from a few hacks to the syntax.
+Grammars describe the data `memgram` reads, formats and displays. Grammars are written in a TOML like syntax, infact the syntax is almost identical apart from a few hacks.
 
 Each grammar file starts with what is referred to in TOML syntax as a [Table](https://github.com/toml-lang/toml#user-content-table). The first Table in a grammar file is allways `[metadata]` and holds a single key value pair. The key is allways `name`, and the user can fill in the value with what they wish to name the data structure, e.g `name = MBR`. 
 
@@ -112,7 +113,7 @@ An entry example:
     description = 'MBR bootstrap code'
 ```
 
-Additionally, specifiying a multiplier for an entry is possible. A multiplier tells `memgram` to repeat an entry a certain number of times. For example, when creating a grammar describing the `Master Boot Record` structure, instead of creating four different entries for four parition entries, we can multiply a single partition entry four times:
+Specifiying a multiplier for an entry is possible. A multiplier tells `memgram` to repeat an entry a certain number of times. For example, when creating a grammar describing the `Master Boot Record` structure, instead of creating four different entries for four parition entries, we can multiply a single partition entry four times:
 
 ```toml
 [[fields]] * 4
@@ -138,8 +139,7 @@ Binarys for each platform can be found here: https://github.com/6point6/memgram/
 
 ### Compiling From Source
 
-If you wish to compile from source:
-1. Follow instructions for installing rust: https://www.rust-lang.org/tools/install
+1. Follow instructions for installing Rust: https://www.rust-lang.org/tools/install
 2. `git clone https://github.com/6point6/memgram.git`
 3. `cd memgram`
 4. `cargo build --release`
@@ -148,20 +148,22 @@ The binary can then be found in `./target/release/`
 
 ### Installing Binary
 
-1. Follow instructions for installing rust: https://www.rust-lang.org/tools/install
+1. Follow instructions for installing Rust: https://www.rust-lang.org/tools/install
 2. `git clone https://github.com/6point6/memgram.git`
 3. `cd memgram`
 4. `cargo install --path .`
 
+As long as `~/.cargo/bin/` is in your PATH, you should now be able to run memgram from the commandline.
+
 ## Usage Examples
 
-* Display formatted data at starting at offset 0 into mbr.bin based on the mbr.toml grammar:
+* Display formatted data starting at offset 0 into mbr.bin based on the mbr.toml grammar:
   * `memgram -g grammar/mbr.toml -b examples/mbr.bin`
-* Display description table and formatted data:
+* Display description table and formatted data at offset 0 into mbr.bin based on the mbr.toml grammar:
   * `memgram -g grammar/mbr.toml -b examples/mbr.bin -d`
 * Convert C struct `COFFHeader.h` to grammar file `coff_header.toml` :
   * `memgram -c examples/COFFHeader.h -o grammar/coff_header.toml`
-* Use C struct COFFHeader to format data in .exe starting at offset 244 and reverse both table and hex view endianess:
+* Use C struct COFFHeader to format data in `Firefox Setup 74.0.exe` starting at offset 244 and reverse both table and hex view endianess:
   * `memgram -c examples/COFFHeader.h -b ~/Downloads/Firefox\ Setup\ 74.0.exe -s 244 -E -e`
 
 The `-s`(structure start offset) `-E`(reverse endian for hex view) `-e` (reverse endian for table view) are optional and can be used when displaying formatted data
