@@ -104,6 +104,7 @@ Listing all of the keys in an entry is mandatory. A list of keys and description
 * The `description` key value is the description of the field (TOML String)
 
 An entry example:
+
 ```toml
 [[fields]]
     name = "Bootstrap Code"
@@ -129,6 +130,7 @@ A multiplier is specfied by adding `* x` after a `[[fields]]` entry, where x is 
 ## Installation
 
 `memgram` can be run on the following platforms:
+
 * Linux
 * macOS
 * Windows
@@ -153,7 +155,7 @@ The binary can then be found in `./target/release/`
 3. `cd memgram`
 4. `cargo install --path .`
 
-As long as `~/.cargo/bin/` is in your PATH, you should now be able to run memgram from the commandline.
+As long as `~/.cargo/bin/` is in your PATH, you should now be able to run `memgram` from the commandline.
 
 ## Usage Examples
 
