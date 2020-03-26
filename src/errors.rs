@@ -12,20 +12,21 @@ macro_rules! serror {
 }
 
 const USAGE_STRING: &str = "memgram [OPTION] [VALUE]";
-const OPTIONS: [&str; 7] = [
-    "-g     grammar filepath",
+const OPTIONS: [&str; 8] = [
     "-b     binary filepath",
-    "-s     offset into binary the file structure starts at",
+    "-c     c struct filepath",
+    "-d     show description table",
     "-e     reverse the endianess for table formatted data",
     "-E     reverse the endianess for hex view formatted data",
-    "-c     c struct filepath",
+    "-g     grammar filepath",
     "-o     output filepath for conversion",
+    "-s     offset into binary the file structure starts at",
 ];
 
 const EXAMPLES: [&str; 3] = [
     "memgram -b ./examples/test_formats.bin -g ./grammar/test_formats.toml -o 0",
     "memgram -c ./examples/COFFHeader.h -o ./grammar/COFFHeader.toml",
-    "memgram -c ./examples/COFFHeader.h -b .~/Downloads/binary.exe -o 244 -e",
+    "memgram -c ./examples/COFFHeader.h -b .~/Downloads/binary.exe -o 244 -e -E -d",
 ];
 
 pub fn usage() {

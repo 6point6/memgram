@@ -10,6 +10,7 @@ pub const BINARY_FILE_FLAG: &str = "-b";
 pub const OFFSET_FLAG: &str = "-s";
 pub const FMT_ENDIAN_FLAG: &str = "-e";
 pub const HEX_ENDIAN_FLAG: &str = "-E";
+pub const DESCRIPTION_FLAG: &str = "-d";
 
 pub struct CMDArgParse {
     raw_args: Vec<String>,
@@ -19,6 +20,7 @@ pub struct CMDArgParse {
     pub cstruct_filepath: String,
     pub output_filepath: String,
     pub struct_offset: u64,
+    pub description: bool,
     pub fmt_endian: bool,
     pub hex_endian: bool,
 }
@@ -39,6 +41,7 @@ impl CMDArgParse {
             cstruct_filepath: String::from(""),
             output_filepath: String::from(""),
             struct_offset: 0,
+            description: false,
             fmt_endian: false,
             hex_endian: false,
         }
@@ -148,10 +151,11 @@ impl CMDArgParse {
         }
     }
 
-    pub fn parse_endian_flags(
+    pub fn parse_bool_flags(
         &mut self,
         fmt_endian_flag: &str,
         hex_endian_flag: &str,
+        description_flag: &str,
     ) -> &mut CMDArgParse {
         if self.arg_map.contains_key(fmt_endian_flag) {
             self.fmt_endian = true
@@ -159,6 +163,10 @@ impl CMDArgParse {
 
         if self.arg_map.contains_key(hex_endian_flag) {
             self.hex_endian = true
+        }
+
+        if self.arg_map.contains_key(description_flag) {
+            self.description = true
         }
         self
     }

@@ -55,6 +55,6 @@ pub fn print_hex_table(
         .finish();
 
     hex_view.print().unwrap();
-
+    println!("");
     Ok(())
 }
