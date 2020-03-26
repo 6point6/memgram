@@ -16,7 +16,12 @@ fn main() {
 fn run() -> Result<(), ()> {
     let mut cmd_args = arg_parse::CMDArgParse::new();
 
-    cmd_args.parse_cmd_args()?;
+    cmd_args.parse_cmd_args()?.parse_help_flag(arg_parse::HELP_FLAG);
+
+    if cmd_args.help_flag {
+        errors::usage();
+        return Ok(())
+    }
 
     match cmd_args.run_cmds() {
         Ok(r) => match r {

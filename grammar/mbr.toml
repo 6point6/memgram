@@ -1,10 +1,10 @@
 [metadata]
-name = 'MBR'
+    name = 'MBR'
 
 [[fields]]
     name = "Bootstrap Code"
     size = 0x1BE
-    data_type = "Mixed"
+    data_type = "mixed"
     display_format = 'hex'
     description = 'MBR bootstrap code'
 

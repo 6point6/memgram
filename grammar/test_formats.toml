@@ -1,5 +1,5 @@
 [metadata]
-name = 'test'
+    name = 'test'
 
 [[fields]]
     name = "Hex"

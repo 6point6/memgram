@@ -11,6 +11,7 @@ pub const OFFSET_FLAG: &str = "-s";
 pub const FMT_ENDIAN_FLAG: &str = "-e";
 pub const HEX_ENDIAN_FLAG: &str = "-E";
 pub const DESCRIPTION_FLAG: &str = "-d";
+pub const HELP_FLAG: &str = "-h";
 
 pub struct CMDArgParse {
     raw_args: Vec<String>,
@@ -23,6 +24,7 @@ pub struct CMDArgParse {
     pub description: bool,
     pub fmt_endian: bool,
     pub hex_endian: bool,
+    pub help_flag: bool,
 }
 
 pub enum CMDOptions {
@@ -44,6 +46,7 @@ impl CMDArgParse {
             description: false,
             fmt_endian: false,
             hex_endian: false,
+            help_flag: false,
         }
     }
 
@@ -101,7 +104,6 @@ impl CMDArgParse {
     pub fn run_cmds(&mut self) -> Result<CMDOptions, ()> {
         if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
             && self.arg_map.contains_key(GRAMMER_FILE_FLAG)
-            && self.arg_map.contains_key(OFFSET_FLAG)
             && self.arg_map.contains_key(BINARY_FILE_FLAG)
         {
             Ok(CMDOptions::DisplayNormal)
@@ -114,7 +116,6 @@ impl CMDArgParse {
                 return Ok(CMDOptions::ConvertWrite);
             } else if self.arg_map.contains_key(BINARY_FILE_FLAG)
                 && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
-                && self.arg_map.contains_key(OFFSET_FLAG)
                 && !self.arg_map.contains_key(OUTPUT_FILE_FLAG)
                 && !self.arg_map.contains_key(GRAMMER_FILE_FLAG)
             {
@@ -146,9 +147,19 @@ impl CMDArgParse {
                 }
             }
         } else {
-            serror!(format!("You need to specify the flag {}", offset_flag));
-            Err(())
+            self.struct_offset = 0;
+            Ok(self)
         }
+    }
+
+    pub fn parse_help_flag (
+        &mut self,
+        help_flag: &str,
+    ) -> &mut CMDArgParse {
+        if self.arg_map.contains_key(help_flag) {
+            self.help_flag = true
+        }
+        self
     }
 
     pub fn parse_bool_flags(
