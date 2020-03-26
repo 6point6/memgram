@@ -21,11 +21,11 @@
 
 `memgram` utilises easily readable file format descriptions called grammars.
 
-<img src="https://github.com/6point6/memgram/blob/master/images/grammar_example.png" width="640" height="640" />
+<img src="https://github.com/6point6/memgram/blob/master/images/grammar_example.png" width="640" />
 
 ### Colored formatted output
 
 `memgram` colors outputted data in both the table view and hex view. If supported types are
 specified, it also formats the data (e.g An ipv4 address).
 
-<img src="https://github.com/6point6/memgram/blob/master/images/test_format.png" width="640" height="640" />
+<img src="https://github.com/6point6/memgram/blob/master/images/test_format.png" width="640" />
