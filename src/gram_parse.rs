@@ -317,8 +317,8 @@ impl Grammar {
             Ok(gram) => {
                 *self = gram;
             }
-            Err(_) => {
-                serror!("Could not parse grammar file");
+            Err(e) => {
+                serror!(format!("Could not parse grammar file, because {}",e));
                 return Err(());
             }
         }
