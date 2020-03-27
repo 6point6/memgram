@@ -152,10 +152,7 @@ impl CMDArgParse {
         }
     }
 
-    pub fn parse_help_flag (
-        &mut self,
-        help_flag: &str,
-    ) -> &mut CMDArgParse {
+    pub fn parse_help_flag(&mut self, help_flag: &str) -> &mut CMDArgParse {
         if self.arg_map.contains_key(help_flag) {
             self.help_flag = true
         }

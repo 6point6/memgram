@@ -52,6 +52,11 @@ pub enum Tables {
     Description,
 }
 
+pub enum MatchResult {
+    FailHard,
+    FailSoft,
+}
+
 impl TableData {
     pub fn new() -> TableData {
         TableData {
@@ -318,7 +323,7 @@ impl Grammar {
                 *self = gram;
             }
             Err(e) => {
-                serror!(format!("Could not parse grammar file, because {}",e));
+                serror!(format!("Could not parse grammar file, because {}", e));
                 return Err(());
             }
         }
@@ -348,8 +353,32 @@ impl Grammar {
         Ok(self)
     }
 
-    fn expand_fields(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
+    fn parse_variable_length(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
         let mut search_index: usize = 0;
+
+        loop {
+            let field_start_end: (usize, usize) =
+                match get_match_start_end(search_index, &file_contents, "size", "\r\n", false) {
+                    Ok(start_end) => start_end,
+                    Err(match_result) => match match_result {
+                        MatchResult::FailHard => return Err(()),
+                        MatchResult::FailSoft => return Ok(self),
+                    },
+                };
+
+            search_index += field_start_end.0;
+
+            let variable_entry_start = match file_contents[search_index..].find('(') {
+                Some(matched_index) => search_index + matched_index,
+                None => return Ok(self),
+            };
+        }
+
+        Ok(self)
+    }
+
+    fn expand_fields(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
+        let mut search_index: usize = 0; // Note, implement get_field_start_end() for this function
 
         loop {
             search_index += match file_contents[search_index..].find("[[fields]] *") {
@@ -394,6 +423,38 @@ impl Grammar {
             file_contents.insert_str(search_index, &multiplied_field[..]);
         }
     }
+}
+
+fn get_match_start_end(
+    search_index: usize,
+    file_contents: &str,
+    match_start: &str,
+    match_end: &str,
+    fail_no_find: bool,
+) -> Result<(usize, usize), MatchResult> {
+    let field_start_index = match file_contents[search_index..].find(match_start) {
+        Some(matched_index) => search_index + matched_index,
+        None => {
+            if fail_no_find {
+                serror!(format!("Could not find match start: {}", match_start));
+                return Err(MatchResult::FailHard);
+            }
+            return Err(MatchResult::FailSoft);
+        }
+    };
+
+    let field_end_index: usize = match file_contents[field_start_index..].find(match_end) {
+        Some(matched_index) => search_index + matched_index,
+        None => {
+            serror!(format!(
+                "Could not find match end: {} for match start: {}",
+                match_end, match_start
+            ));
+            return Err(MatchResult::FailHard);
+        }
+    };
+
+    Ok((field_start_index, field_end_index))
 }
 
 pub struct DissassOutput {

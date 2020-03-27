@@ -16,11 +16,13 @@ fn main() {
 fn run() -> Result<(), ()> {
     let mut cmd_args = arg_parse::CMDArgParse::new();
 
-    cmd_args.parse_cmd_args()?.parse_help_flag(arg_parse::HELP_FLAG);
+    cmd_args
+        .parse_cmd_args()?
+        .parse_help_flag(arg_parse::HELP_FLAG);
 
     if cmd_args.help_flag {
         errors::usage();
-        return Ok(())
+        return Ok(());
     }
 
     match cmd_args.run_cmds() {
@@ -46,7 +48,11 @@ fn run() -> Result<(), ()> {
                     .parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?
                     .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
                     .parse_offset_flag(arg_parse::OFFSET_FLAG)?
-                    .parse_bool_flags(arg_parse::FMT_ENDIAN_FLAG, arg_parse::HEX_ENDIAN_FLAG, arg_parse::DESCRIPTION_FLAG);
+                    .parse_bool_flags(
+                        arg_parse::FMT_ENDIAN_FLAG,
+                        arg_parse::HEX_ENDIAN_FLAG,
+                        arg_parse::DESCRIPTION_FLAG,
+                    );
 
                 c_struct
                     .parse_c_struct(&cmd_args.cstruct_filepath)?
@@ -80,7 +86,11 @@ fn run() -> Result<(), ()> {
                     .parse_file_flag(arg_parse::GRAMMER_FILE_FLAG)?
                     .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
                     .parse_offset_flag(arg_parse::OFFSET_FLAG)?
-                    .parse_bool_flags(arg_parse::FMT_ENDIAN_FLAG, arg_parse::HEX_ENDIAN_FLAG, arg_parse::DESCRIPTION_FLAG);
+                    .parse_bool_flags(
+                        arg_parse::FMT_ENDIAN_FLAG,
+                        arg_parse::HEX_ENDIAN_FLAG,
+                        arg_parse::DESCRIPTION_FLAG,
+                    );
 
                 let mut file_contents = file_parse::FileData::new();
 
@@ -98,7 +108,7 @@ fn run() -> Result<(), ()> {
                         .fill_description_table(&parsed_gram)
                         .print_table(gram_parse::Tables::Description)
                 }
-                
+
                 table_data
                     .create_field_hashmap(&parsed_gram, &cmd_args)?
                     .format_fields(&parsed_gram, cmd_args.fmt_endian)?
