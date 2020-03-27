@@ -13,7 +13,7 @@
 
 # About
 
-`memgram` has been developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse engineering can be quickly described in an easily readable TOML like format called a grammar. `memgram` reads a file containing a custom data structure, applies a grammar and displays formatted prettified output of data.
+`memgram` has been developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse engineering can be quickly described in an easily readable TOML-like format called a grammar. `memgram` reads a file containing a custom data structure, applies a grammar and displays formatted prettified output of data.
 
 `memgram` is heavily inspired by the hex editors:
 * [Synalyze It!](https://www.synalysis.net/)
@@ -47,13 +47,13 @@ If a display type not listed above is used, `memgram` will default to formating 
 
 ### C Struct Support
 
-C structs containing basic types can be converted to a grammar file. C basic types may have different sizes depending on the system code is compiled on, however the most common size for each type has been selected (e.g short is 2 bytes). The structs can either be converted to a grammar file or used directly to display data with the option of reversing endianess.
+C structs containing basic types can be converted to a grammar file. C basic types may have different sizes depending on the system the code is compiled on, however the most common size for each type has been selected (e.g short is 2 bytes). The structs can either be converted to a grammar file or used directly to display data with the option of reversing endianess.
 
 <img src="https://github.com/6point6/memgram/blob/master/images/c_struct_example.png" width="640" />
 
 ### Multipliying Field Entries
 
-To save typing it's possible to multiply a grammar entry x number of times. For example below is the entire grammar for the `Master Boot Record` structure:
+To save typing, it's possible to multiply a grammar entry a specified number of times. For example below is the entire grammar for the `Master Boot Record` structure:
 
 ```toml
 [metadata]
@@ -83,7 +83,7 @@ To save typing it's possible to multiply a grammar entry x number of times. For 
 
 ## Grammar Format
 
-Grammars describe the data `memgram` reads, formats and displays. Grammars are written in a TOML like syntax, infact the syntax is almost identical apart from a few hacks.
+Grammars describe the data `memgram` reads, formats and displays. Grammars are written in a TOML like syntax, in fact the syntax is almost identical apart from a few hacks.
 
 Each grammar file starts with what is referred to in TOML syntax as a [Table](https://github.com/toml-lang/toml#user-content-table). The first Table in a grammar file is allways `[metadata]` and holds a single key value pair. The key is allways `name`, and the user can fill in the value with what they wish to name the data structure, e.g `name = MBR`. 
 
@@ -114,7 +114,7 @@ An entry example:
     description = 'MBR bootstrap code'
 ```
 
-Specifiying a multiplier for an entry is possible. A multiplier tells `memgram` to repeat an entry a certain number of times. For example, when creating a grammar describing the `Master Boot Record` structure, instead of creating four different entries for four parition entries, we can multiply a single partition entry four times:
+Specifiying a multiplier for an entry is possible. A multiplier tells `memgram` to repeat an entry a given number of times. For example, when creating a grammar describing the `Master Boot Record` structure, instead of creating four different entries for four parition entries, we can multiply a single partition entry four times:
 
 ```toml
 [[fields]] * 4
@@ -137,7 +137,7 @@ A multiplier is specfied by adding `* x` after a `[[fields]]` entry, where x is 
 
 ### Standalone Binaries
 
-Binarys for each platform can be found here: https://github.com/6point6/memgram/releases
+Binaries for each platform can be found here: https://github.com/6point6/memgram/releases
 
 ### Compiling From Source
 
@@ -148,7 +148,7 @@ Binarys for each platform can be found here: https://github.com/6point6/memgram/
 
 The binary can then be found in `./target/release/`
 
-### Installing Binary
+### Installing a Binary
 
 1. Follow instructions for installing Rust: https://www.rust-lang.org/tools/install
 2. `git clone https://github.com/6point6/memgram.git`
