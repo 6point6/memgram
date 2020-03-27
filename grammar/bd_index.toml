@@ -31,7 +31,7 @@
 
 [[fields]]
 	name = 'Filename'
-	size = ('Index Entry Length' '-' '16')
+	size = ('Index Entry Length' - 16)
 	data_type = 'ASCII'
 	display_format = 'ascii'
 	description = 'N/A'

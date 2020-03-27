@@ -354,11 +354,11 @@ impl Grammar {
     }
 
     fn parse_variable_length(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
-        let mut search_index: usize = 0;
+        let mut search_start_index: usize = 0;
 
         loop {
             let field_start_end: (usize, usize) =
-                match get_match_start_end(search_index, &file_contents, "size", "\r\n", false) {
+                match get_match_start_end(search_start_index,file_contents.len() as usize, &file_contents, "size", "\r\n", false) {
                     Ok(start_end) => start_end,
                     Err(match_result) => match match_result {
                         MatchResult::FailHard => return Err(()),
@@ -366,12 +366,29 @@ impl Grammar {
                     },
                 };
 
-            search_index += field_start_end.0;
+            search_start_index += field_start_end.0;
 
-            let variable_entry_start = match file_contents[search_index..].find('(') {
-                Some(matched_index) => search_index + matched_index,
-                None => return Ok(self),
-            };
+            let var_entry_start_end: (usize, usize) =
+                match get_match_start_end(search_start_index,field_start_end.1, &file_contents, "(", ")", false) {
+                    Ok(start_end) => start_end,
+                    Err(match_result) => match match_result {
+                        MatchResult::FailHard => return Err(()),
+                        MatchResult::FailSoft => return Ok(self),
+                    },
+                };
+
+            search_start_index += var_entry_start_end.0;
+
+            let variable_name_start_end: (usize, usize) =
+                match get_match_start_end(search_start_index,var_entry_start_end.1 ,&file_contents, "'", "'", true) {
+                    Ok(start_end) => start_end,
+                    Err(match_result) => match match_result {
+                        MatchResult::FailHard => return Err(()),
+                        MatchResult::FailSoft => return Ok(self),
+                    },
+                };
+
+            
         }
 
         Ok(self)
@@ -426,14 +443,15 @@ impl Grammar {
 }
 
 fn get_match_start_end(
-    search_index: usize,
+    search_start: usize,
+    search_end: usize,
     file_contents: &str,
     match_start: &str,
     match_end: &str,
     fail_no_find: bool,
 ) -> Result<(usize, usize), MatchResult> {
-    let field_start_index = match file_contents[search_index..].find(match_start) {
-        Some(matched_index) => search_index + matched_index,
+    let match_start_index = match file_contents[search_start..search_end].find(match_start) {
+        Some(matched_index) => search_start + matched_index,
         None => {
             if fail_no_find {
                 serror!(format!("Could not find match start: {}", match_start));
@@ -443,8 +461,8 @@ fn get_match_start_end(
         }
     };
 
-    let field_end_index: usize = match file_contents[field_start_index..].find(match_end) {
-        Some(matched_index) => search_index + matched_index,
+    let match_end_index: usize = match file_contents[match_start_index..search_end].find(match_end) {
+        Some(matched_index) => match_start_index + matched_index,
         None => {
             serror!(format!(
                 "Could not find match end: {} for match start: {}",
@@ -454,7 +472,7 @@ fn get_match_start_end(
         }
     };
 
-    Ok((field_start_index, field_end_index))
+    Ok((match_start_index, match_end_index))
 }
 
 pub struct DissassOutput {
