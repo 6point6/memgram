@@ -1,6 +1,6 @@
 [metadata]
 	name = 'Bravely Default Text'
-	variable_length = [['Filename','-'],[16]]
+	variable_fields = ['Filename - 16']
 	repeat_fields = ['no'] # generate blank template?
 
 [[fields]] 

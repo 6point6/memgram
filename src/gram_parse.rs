@@ -28,6 +28,8 @@ pub struct Grammar {
 #[derive(Deserialize, Debug, Clone)]
 pub struct GrammerMetadata {
     pub name: String,
+    pub variable_fields: Vec<String>,
+    pub repeat_fields: Vec<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -305,6 +307,8 @@ impl GrammerMetadata {
     pub fn new() -> GrammerMetadata {
         GrammerMetadata {
             name: String::from(""),
+            variable_fields: Vec::new(),
+            repeat_fields: Vec::new(),
         }
     }
 }
@@ -348,181 +352,11 @@ impl Grammar {
         struct_size
     }
 
-    pub fn pre_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
-        self.parse_variable_length(file_contents)?
-            .expand_fields(file_contents)?;
-        Ok(self)
-    }
-
-    fn parse_variable_length(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
-        let mut search_start_index: usize = 0;
-
-        loop {
-            let field_start_end: (usize, usize) =
-                match get_match_start_end_newline(search_start_index, &file_contents, "size =") {
-                    Ok(matched_start_end) => matched_start_end,
-                    Err(e) => match e {
-                        MatchResult::FailSoft => break,
-                        MatchResult::FailHard => return Err(()),
-                    },
-                };
-
-            search_start_index = field_start_end.1;
-
-            let var_entry_start_end: (usize, usize) = match get_match_start_end(
-                field_start_end.0,
-                field_start_end.1,
-                &file_contents,
-                "(",
-                ")",
-                false,
-            ) {
-                Ok(start_end) => start_end,
-                Err(match_result) => match match_result {
-                    MatchResult::FailHard => return Err(()),
-                    MatchResult::FailSoft => continue,
-                },
-            };
-
-            println!(
-                "START: {}\nMATCHSTART: {}\nMATCHEND: {}\n",
-                search_start_index, var_entry_start_end.0, var_entry_start_end.1
-            );
-
-            let var_name_start_end: (usize, usize) = match get_match_start_end( // remove this and parse one byte at a time
-                var_entry_start_end.0,
-                var_entry_start_end.1,
-                &file_contents,
-                "'",
-                "'",
-                true,
-            ) {
-                Ok(start_end) => start_end,
-                Err(match_result) => match match_result {
-                    MatchResult::FailHard => return Err(()),
-                    MatchResult::FailSoft => return Ok(self),
-                },
-            };
-
-            println!(
-                "START: {}\nMATCHSTART: {}\nMATCHEND: {}\n",
-                search_start_index, var_name_start_end.0, var_name_start_end.1
-            );
-
-            let variable_name = 
-                file_contents[var_name_start_end.0..var_name_start_end.1].to_string(); // Save var name, save offset bracket start, bracket end ( in a vector of struct?), then search names match replace all
-
-            println!("var name: {}", variable_name);
-        }
+    pub fn post_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
 
         Ok(self)
     }
 
-    fn expand_fields(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
-        let mut search_index: usize = 0; // Note, implement get_field_start_end() for this function and support for just \n
-        // let mut crlf_flag = false;
-        
-        loop {
-            search_index += match file_contents[search_index..].find("[[fields]] *") {
-                Some(matched_index) => matched_index,
-                None => return Ok(self),
-            };
-
-            let next_line_index = match file_contents[search_index + 13..].find("\r\n") {
-                Some(matched_index) => matched_index + search_index + 13,
-                None => {
-                    serror!("Could not find CRLF after field multiplier");
-                    return Err(());
-                }
-            };
-
-            let multiple: u32 = match file_contents[search_index + 13..next_line_index]
-                .trim()
-                .parse::<u32>()
-            {
-                Ok(mul) => mul,
-                Err(_) => {
-                    serror!("Could not parse field multiplier");
-                    return Err(());
-                }
-            };
-
-            file_contents.replace_range(search_index + 10..next_line_index, "    ");
-
-            let field_end_index: usize = file_contents[search_index..]
-                .find("\r\n\r\n")
-                .ok_or_else(|| serror!("Could not find CRLF after multiplied field"))?;
-
-            let mut multiplied_field = String::from("");
-
-            for _i in 1..multiple {
-                multiplied_field.push_str(
-                    &file_contents[search_index..search_index + field_end_index].to_string(),
-                );
-                multiplied_field.push_str("\r\n\r\n");
-            }
-
-            file_contents.insert_str(search_index, &multiplied_field[..]);
-        }
-    }
-}
-
-fn get_match_start_end_newline(
-    search_start: usize,
-    file_contents: &str,
-    match_start: &str,
-) -> Result<(usize, usize), MatchResult> {
-    let match_start_index = match file_contents[search_start..].find(match_start) {
-        Some(matched_index) => search_start + matched_index,
-        None => return Err(MatchResult::FailSoft),
-    };
-
-    let match_end_index: usize = match file_contents[match_start_index..].find("\r\n") {
-        Some(matched_index) => match_start_index + matched_index,
-        None => match file_contents[match_start_index..].find("\n") {
-            Some(matched_index) => match_start_index + matched_index,
-            None => {
-                serror!(format!("Could not find newline after: {}", match_start));
-                return Err(MatchResult::FailHard);
-            }
-        },
-    };
-
-    Ok((match_start_index, match_end_index))
-}
-
-fn get_match_start_end(
-    search_start: usize,
-    search_end: usize,
-    file_contents: &str,
-    match_start: &str,
-    match_end: &str,
-    fail_no_find: bool,
-) -> Result<(usize, usize), MatchResult> {
-    let match_start_index = match file_contents[search_start..search_end].find(match_start) {
-        Some(matched_index) => search_start + matched_index + 1,
-        None => {
-            if fail_no_find {
-                serror!(format!("Could not find match start: {}", match_start));
-                return Err(MatchResult::FailHard);
-            }
-            return Err(MatchResult::FailSoft);
-        }
-    };
-
-    let match_end_index: usize = match file_contents[match_start_index..search_end].find(match_end)
-    {
-        Some(matched_index) => match_start_index + matched_index,
-        None => {
-            serror!(format!(
-                "Could not find match end: {} for match start: {}",
-                match_end, match_start
-            ));
-            return Err(MatchResult::FailHard);
-        }
-    };
-
-    Ok((match_start_index, match_end_index))
 }
 
 pub struct DissassOutput {
