@@ -1,37 +1,40 @@
 [metadata]
 	name = 'Bravely Default Text'
+	variable_length = [['Filename','-'],[16]]
+	repeat_fields = ['no'] # generate blank template?
 
 [[fields]] 
 	name = 'Index Entry Length'
-	size = 0x04
+	size = 4
 	data_type = 'Length'
 	display_format = 'hexle'
 	description = 'Total size of filename entry in index.fs'
 
 [[fields]]
 	name = 'File Start Offset'
-	size = 0x04
+	size = 4
 	data_type = 'Offset'
 	display_format = 'hexle'
 	description = 'Start offset for file in crowd.fs'
 
 [[fields]]
 	name = 'File Length'
-	size = 0x04
+	size = 4
 	data_type = 'Length'
 	display_format = 'hexle'
 	description = 'Length of file in crowd.fs'
 
 [[fields]]
 	name = 'Unknown Data'
-	size = 0x04
+	size = 4
 	data_type = 'N/A'
 	display_format = 'hex'
 	description = 'N/A'
 
 [[fields]]
 	name = 'Filename'
-	size = ('Index Entry Length' - 16)
+	size = 0
 	data_type = 'ASCII'
 	display_format = 'ascii'
 	description = 'N/A'
+
