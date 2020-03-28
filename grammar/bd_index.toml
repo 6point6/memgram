@@ -1,7 +1,7 @@
 [metadata]
 	name = 'Bravely Default Text'
-	variable_fields = ['Filename - 16']
-	repeat_fields = ['no'] # generate blank template?
+	variable_fields = ['']
+	repeat_fields = [''] 
 
 [[fields]] 
 	name = 'Index Entry Length'

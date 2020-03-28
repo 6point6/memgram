@@ -353,7 +353,7 @@ impl Grammar {
     }
 
     pub fn post_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
-
+ 
         Ok(self)
     }
 

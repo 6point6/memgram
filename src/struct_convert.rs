@@ -89,6 +89,8 @@ impl CStruct {
         self.toml_string.push_str("[metadata]\r\n");
         self.toml_string
             .push_str(&format!("\tname = '{}'\r\n", self.name)[..]);
+        self.toml_string.push_str("\tvariable_fields = ['']\r\n");
+        self.toml_string.push_str("\trepeat_fields = ['']\r\n");
 
         for field in self.fields.iter() {
             self.toml_string.push_str("\r\n[[fields]]\r\n");

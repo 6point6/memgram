@@ -1,5 +1,7 @@
 [metadata]
 	name = 'COFFHeader'
+	variable_fields = ['']
+	repeat_fields = ['']
 
 [[fields]]
 	name = 'Machine'
