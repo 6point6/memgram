@@ -1,5 +1,7 @@
 [metadata]
     name = 'GBA-Cartridge-Header'
+    variable_size_fields = [['','','','']]
+	multiply_fields = [['','']] 
 
 [[fields]]
     name = "ROM Entry Point"

@@ -1,5 +1,7 @@
 [metadata]
     name = 'FAT16-bootsector'
+    variable_size_fields = [['','','','']]
+	multiply_fields = [['','']] 
 
 [[fields]]
     name = "Start jump"

@@ -1,7 +1,7 @@
 [metadata]
 	name = 'COFFHeader'
-	variable_size_fields = ['']
-	multiply_fields = ['']
+	variable_size_fields = [['','','','']]
+	multiply_fields = [['','']] 
 
 [[fields]]
 	name = 'Machine'
