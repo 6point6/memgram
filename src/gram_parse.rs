@@ -5,6 +5,7 @@ use prettytable::Table;
 use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
@@ -29,7 +30,7 @@ pub struct Grammar {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerMetadata {
     pub name: String,
-    pub variable_fields: Vec<String>,
+    pub variable_size_fields: Vec<(String, String, String, String)>,
     pub multiply_fields: Vec<(String, String)>,
 }
 
@@ -53,11 +54,6 @@ pub struct TableData {
 pub enum Tables {
     Standard,
     Description,
-}
-
-pub enum MatchResult {
-    FailHard,
-    FailSoft,
 }
 
 impl TableData {
@@ -102,15 +98,14 @@ impl TableData {
                 serror!(format!("Could not get value for field: {}", field.name));
             })?;
 
-            let name_length: usize = field.name.len() - 3;
-            let id: String = field.name[name_length..].to_string();
+            let field_id = format!("{:03X}", index);
 
             if index % 2 == 0 {
                 self.standard_table
-                        .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->format!("{:#X}", struct_offset),bFG->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
+                        .add_row(row![bFG->field_id,bFG->field.name,bFG->format!("{:#X}", struct_offset),bFG->format!("{:#X}",field.size),bFG->field.data_type,bFG->raw_hex_string,bFG->formatted_data]);
             } else {
                 self.standard_table
-                        .add_row(row![bFM->id,bFM->field.name[..name_length],bFM->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
+                        .add_row(row![bFM->field_id,bFM->field.name,bFM->format!("{:#X}", struct_offset),bFM->format!("{:#X}",field.size),bFM->field.data_type,bFM->raw_hex_string,bFM->formatted_data]);
             }
 
             struct_offset += field.size;
@@ -138,9 +133,55 @@ impl TableData {
         self
     }
 
+    pub fn create_var_size_field_hashmap(
+        &mut self,
+        parsed_gram: &mut Grammar,
+        binary_file: &mut File,
+    ) -> Result<(), ()> {
+        let mut var_sized_fields_vec: Vec<VariableSizeEntry> = Vec::new();
+
+        parsed_gram.create_var_size_entry_vector(&mut var_sized_fields_vec)?;
+
+        for field in &mut parsed_gram.fields {
+            for entry in var_sized_fields_vec.iter_mut() {
+                if field.name == entry.var_field_name {
+                    let raw_field_data: Vec<u8> = self
+                            .field_hashmap
+                            .get(&entry.source_field_name)
+                            .ok_or_else(|| {
+                                serror!(format!(
+                                    "Source field name: {}, should appear before variable field name: {}",
+                                    entry.source_field_name, entry.var_field_name
+                                ))
+                            })?
+                            .clone();
+
+                    if &entry.source_field_display[..] == HEXLE_TYPE {
+                        entry
+                            .convert_field_size(&raw_field_data, ConvertEndianess::LittleEndian)?;
+                    } else {
+                        entry.convert_field_size(&raw_field_data, ConvertEndianess::BigEndian)?;
+                    }
+
+                    field.size = entry.calculate_variable_size();
+                }
+            }
+
+            self.field_hashmap.insert(
+                field.name.to_string(),
+                binary_file
+                    .bytes()
+                    .take(field.size)
+                    .map(|r: Result<u8, _>| r.unwrap())
+                    .collect(),
+            );
+        }
+        Ok(())
+    }
+
     pub fn create_field_hashmap(
         &mut self,
-        parsed_gram: &Grammar,
+        parsed_gram: &mut Grammar,
         cmd_args: &arg_parse::CMDArgParse,
     ) -> Result<&mut TableData, ()> {
         let binary_file: &mut File = &mut File::open(&cmd_args.binary_filepath)
@@ -151,21 +192,27 @@ impl TableData {
             &cmd_args.binary_filepath,
             cmd_args.struct_offset,
             parsed_gram.get_struct_size() as u64,
-        )?;
+        )?; // Need to adjust this as useless now
 
         binary_file
             .seek(SeekFrom::Start(cmd_args.struct_offset))
             .unwrap();
 
-        for field in &parsed_gram.fields {
-            self.field_hashmap.insert(
-                field.name.to_string(),
-                binary_file
-                    .bytes()
-                    .take(field.size)
-                    .map(|r: Result<u8, _>| r.unwrap())
-                    .collect(),
-            );
+        if !parsed_gram.metadata.variable_size_fields[0].0.is_empty()
+            || !parsed_gram.metadata.variable_size_fields[0].2.is_empty()
+        {
+            self.create_var_size_field_hashmap(parsed_gram, binary_file)?;
+        } else {
+            for field in &parsed_gram.fields {
+                self.field_hashmap.insert(
+                    field.name.to_string(),
+                    binary_file
+                        .bytes()
+                        .take(field.size)
+                        .map(|r: Result<u8, _>| r.unwrap())
+                        .collect(),
+                );
+            }
         }
         Ok(self)
     }
@@ -191,30 +238,33 @@ impl TableData {
             self.field_str_hashmap
                 .insert(field.name.clone(), raw_hex_string.clone());
 
-            let raw_data: &Vec<u8> = self.field_hashmap.get(&field.name).ok_or_else(|| {
-                serror!(format!("Could not get value for field: {}", field.name));
-            })?;
+            let raw_field_data: &Vec<u8> =
+                self.field_hashmap.get(&field.name).ok_or_else(|| {
+                    serror!(format!("Could not get value for field: {}", field.name));
+                })?;
 
             let reverse_hex_string = || {
-                let mut reversed_raw_data: Vec<u8> = raw_data.clone();
-                reversed_raw_data.reverse();
-                reversed_raw_data.encode_hex::<String>().to_uppercase()
+                let mut reversed_raw_field_data: Vec<u8> = raw_field_data.clone();
+                reversed_raw_field_data.reverse();
+                reversed_raw_field_data
+                    .encode_hex::<String>()
+                    .to_uppercase()
             };
 
             let formatted_data = match &field.display_format[..] {
                 HEXLE_TYPE => reverse_hex_string(),
-                ASCII_TYPE => raw_data.iter().map(|ascii| *ascii as char).collect(),
-                IPV4BE_TYPE => format_ipv4_string(&raw_data)?,
+                ASCII_TYPE => raw_field_data.iter().map(|ascii| *ascii as char).collect(),
+                IPV4BE_TYPE => format_ipv4_string(&raw_field_data)?,
                 IPV4LE_TYPE => {
-                    let mut reversed_raw_data: Vec<u8> = raw_data.clone();
-                    reversed_raw_data.reverse();
-                    format_ipv4_string(&reversed_raw_data)?
+                    let mut reversed_raw_field_data: Vec<u8> = raw_field_data.clone();
+                    reversed_raw_field_data.reverse();
+                    format_ipv4_string(&reversed_raw_field_data)?
                 }
-                UTF16BE_TYPE => format_utf16_string(raw_data, false)?,
-                UTF16LE_TYPE => format_utf16_string(raw_data, true)?,
+                UTF16BE_TYPE => format_utf16_string(raw_field_data, false)?,
+                UTF16LE_TYPE => format_utf16_string(raw_field_data, true)?,
                 X86_TYPE => {
                     let mut x86_disassembly = DissassOutput::new();
-                    x86_disassembly.format_x86(16, raw_data);
+                    x86_disassembly.format_x86(16, raw_field_data);
 
                     if x86_disassembly.line_count > 5 {
                         String::from("See table above ;)")
@@ -259,11 +309,11 @@ fn format_utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String
     let raw_iter = utf16_bytes.chunks_exact(2);
 
     if little_endian {
-        let le_raw_data: Vec<u16> = raw_iter
+        let le_raw_field_data: Vec<u16> = raw_iter
             .map(|word| u16::from_le_bytes([word[0], word[1]]))
             .collect();
 
-        match U16CString::from_vec_with_nul(le_raw_data) {
+        match U16CString::from_vec_with_nul(le_raw_field_data) {
             Ok(le_data) => Ok(le_data.to_string_lossy()),
             Err(_) => {
                 serror!("Error constructing UTF16_LE string");
@@ -271,11 +321,11 @@ fn format_utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String
             }
         }
     } else {
-        let le_raw_data: Vec<u16> = raw_iter
+        let le_raw_field_data: Vec<u16> = raw_iter
             .map(|word| u16::from_be_bytes([word[0], word[1]]))
             .collect();
 
-        match U16CString::from_vec_with_nul(le_raw_data) {
+        match U16CString::from_vec_with_nul(le_raw_field_data) {
             Ok(le_data) => Ok(le_data.to_string_lossy()),
             Err(_) => {
                 serror!("Error constructing UTF16_BE string");
@@ -308,7 +358,7 @@ impl GrammerMetadata {
     pub fn new() -> GrammerMetadata {
         GrammerMetadata {
             name: String::from(""),
-            variable_fields: Vec::new(),
+            variable_size_fields: Vec::new(),
             multiply_fields: Vec::new(),
         }
     }
@@ -347,10 +397,11 @@ impl Grammar {
     }
 
     pub fn post_parse_toml(&mut self) -> Result<&mut Grammar, ()> {
-        
-        self.multiply_fields()?;
-
-        self.add_field_id();
+        if !self.metadata.multiply_fields[0].0.is_empty()
+            && !self.metadata.multiply_fields[0].1.is_empty()
+        {
+            self.multiply_fields()?;
+        }
 
         Ok(self)
     }
@@ -364,18 +415,102 @@ impl Grammar {
         }
     }
 
-    fn multiply_fields(&mut self) -> Result<(), ()> {
-        if self.metadata.multiply_fields[0].0.is_empty()
-            && self.metadata.multiply_fields[0].1.is_empty()
-        {
-            return Ok(());
+    fn create_var_size_entry_vector(
+        &mut self,
+        var_size_entry_vec: &mut Vec<VariableSizeEntry>,
+    ) -> Result<(), ()> {
+        let mut variable_size_vector: Vec<VariableSizeEntry> = Vec::new();
+
+        for entry in self.metadata.variable_size_fields.iter() {
+            let mut variable_size_entry = VariableSizeEntry::new();
+
+            let entry_0 = entry.0.as_str();
+            let entry_1 = entry.1.as_str();
+            let entry_2 = entry.2.as_str();
+            let entry_3 = entry.3.as_str();
+
+            for (index, field) in self.fields.iter().enumerate() {
+                if &field.name[..] == entry_0 {
+                    variable_size_entry.source_field_name = field.name.clone();
+                    variable_size_entry.source_field_display = field.display_format.clone();
+                    variable_size_entry.source_field_index = index;
+
+                    if !entry_1.is_empty() && !entry_2.is_empty() {
+                        variable_size_entry.arithmetic_operator =
+                            get_var_arithmetic_operator(entry_1.trim())?;
+
+                        variable_size_entry.adjustment = match entry_2.trim().parse::<usize>() {
+                            Ok(adjustment) => adjustment,
+                            Err(e) => {
+                                serror!(format!(
+                                    "Could not convert variable size adjustment: {} because, {}",
+                                    entry_2.trim(),
+                                    e
+                                ));
+                                return Err(());
+                            }
+                        };
+
+                        variable_size_entry.arithemitc_order =
+                            VariableSizeArithmeticOrder::Forwards;
+                    }
+                } else if &field.name[..] == entry_2 {
+                    variable_size_entry.source_field_name = field.name.clone();
+                    variable_size_entry.source_field_display = field.display_format.clone();
+                    variable_size_entry.source_field_index = index;
+
+                    if !entry_0.is_empty() && !entry_1.is_empty() {
+                        variable_size_entry.arithmetic_operator =
+                            get_var_arithmetic_operator(entry_1.trim())?;
+
+                        variable_size_entry.adjustment = match entry_0.trim().parse::<usize>() {
+                            Ok(adjustment) => adjustment,
+                            Err(e) => {
+                                serror!(format!(
+                                    "Could not convert variable size adjustment: {} because, {}",
+                                    entry_2.trim(),
+                                    e
+                                ));
+                                return Err(());
+                            }
+                        };
+
+                        variable_size_entry.arithemitc_order =
+                            VariableSizeArithmeticOrder::Backwards;
+                    }
+                } else if &field.name[..] == entry_3 {
+                    variable_size_entry.var_field_name = field.name.clone();
+                }
+            }
+
+            if variable_size_entry.var_field_name.is_empty() {
+                serror!(format!(
+                    "Variable field name: {}, does not exist for variable size fields",
+                    entry_3
+                ));
+                return Err(());
+            } else if variable_size_entry.source_field_name.is_empty() {
+                match entry_0.parse::<i32>() {
+                    Ok(_) => serror!(format!("Source field name: {} does not exist as a field in grammar",entry_2)),
+                    Err(_) => serror!(format!("Source field name: {} does not exist as a field in grammar",entry_0)),
+                }
+                return Err(());
+            }
+
+            variable_size_vector.push(variable_size_entry);
         }
 
-        for multiplier_entry in self.metadata.multiply_fields.iter() {
+        *var_size_entry_vec = variable_size_vector;
+
+        Ok(())
+    }
+
+    fn multiply_fields(&mut self) -> Result<(), ()> {
+        for entry in self.metadata.multiply_fields.iter() {
             let mut field_multiply = FieldMultiply::new();
 
-            let entry_0 = multiplier_entry.0.as_str();
-            let entry_1 = multiplier_entry.1.as_str();
+            let entry_0 = entry.0.as_str();
+            let entry_1 = entry.1.as_str();
 
             for (index, field) in self.fields.iter().enumerate() {
                 if &field.name[..] == entry_0 {
@@ -387,10 +522,10 @@ impl Grammar {
                             field_multiply.multiplier = multiplier;
                             break;
                         }
-                        Err(_) => {
+                        Err(e) => {
                             serror!(format!(
-                                "Could not convert multiplier for field: {} to an interger",
-                                field.name
+                                "Could not convert multiplier for field: {} to an interger, because {}",
+                                field.name, e
                             ));
                             return Err(());
                         }
@@ -404,11 +539,10 @@ impl Grammar {
                             field_multiply.multiplier = multiplier;
                             break;
                         }
-                        Err(_) => {
+                        Err(e) => {
                             serror!(format!(
-                                "Could not convert multiplier for field: {} to an interger",
-                                field.name
-                            ));
+                                "Could not convert multiplier for field: {} to an interger, because {}",
+                                field.name, e));
                             return Err(());
                         }
                     }
@@ -422,16 +556,143 @@ impl Grammar {
                 return Err(());
             }
 
-            for _x in 1..field_multiply.multiplier {
-                self.fields.insert(field_multiply.field_index,self.fields[field_multiply.field_index].clone());
+            for _x in 0..field_multiply.multiplier - 1 {
+                self.fields.insert(
+                    field_multiply.field_index,
+                    self.fields[field_multiply.field_index].clone(),
+                );
             }
-            
+        }
+        Ok(())
+    }
+}
+
+fn get_var_arithmetic_operator(arithmetic_op_str: &str) -> Result<ArithmeticOperators, ()> {
+    if arithmetic_op_str.len() > 1 {
+        serror!(format!("Invalid arithmetic operator legnth: {} for variable size fields: {}, must be one of the following (+, -, *, /)", arithmetic_op_str.len(),arithmetic_op_str));
+        return Err(());
+    }
+    match arithmetic_op_str {
+        "+" => Ok(ArithmeticOperators::Addition),
+        "-" => Ok(ArithmeticOperators::Subtraction),
+        "*" => Ok(ArithmeticOperators::Multiplication),
+        "/" => Ok(ArithmeticOperators::Division),
+        _ => {
+            serror!(format!("Invalid arithmetic operator for variable size fields: {}, must be one of the following (+, -, *, /)",arithmetic_op_str));
+            Err(())
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct VariableSizeEntry {
+    pub source_field_name: String,
+    pub source_field_index: usize,
+    pub source_field_real_size: usize,
+    pub source_field_display: String,
+    pub var_field_name: String,
+    pub arithemitc_order: VariableSizeArithmeticOrder,
+    pub arithmetic_operator: ArithmeticOperators,
+    pub adjustment: usize,
+}
+
+pub enum ConvertEndianess {
+    BigEndian,
+    LittleEndian,
+}
+
+impl VariableSizeEntry {
+    fn new() -> VariableSizeEntry {
+        VariableSizeEntry {
+            source_field_name: String::from(""),
+            source_field_index: 0,
+            source_field_real_size: 0,
+            source_field_display: String::from(""),
+            var_field_name: String::from(""),
+            arithemitc_order: VariableSizeArithmeticOrder::Unset,
+            arithmetic_operator: ArithmeticOperators::Addition,
+            adjustment: 0,
+        }
+    }
+
+    pub fn calculate_variable_size(&mut self) -> usize {
+        match self.arithemitc_order {
+            VariableSizeArithmeticOrder::Unset => self.source_field_real_size,
+            VariableSizeArithmeticOrder::Forwards => match self.arithmetic_operator {
+                ArithmeticOperators::Addition => self.source_field_real_size + self.adjustment,
+                ArithmeticOperators::Subtraction => self.source_field_real_size - self.adjustment,
+                ArithmeticOperators::Multiplication => {
+                    self.source_field_real_size * self.adjustment
+                }
+                ArithmeticOperators::Division => self.source_field_real_size / self.adjustment,
+            },
+            VariableSizeArithmeticOrder::Backwards => match self.arithmetic_operator {
+                ArithmeticOperators::Addition => self.adjustment + self.source_field_real_size,
+                ArithmeticOperators::Subtraction => self.adjustment - self.source_field_real_size,
+                ArithmeticOperators::Multiplication => {
+                    self.adjustment * self.source_field_real_size
+                }
+                ArithmeticOperators::Division => self.adjustment / self.source_field_real_size,
+            },
+        }
+    }
+
+    pub fn convert_field_size(
+        &mut self,
+        raw_field_data: &Vec<u8>,
+        endianess: ConvertEndianess,
+    ) -> Result<(), ()> {
+        match endianess {
+            ConvertEndianess::LittleEndian => {
+                self.source_field_real_size = match raw_field_data.len() {
+                    2 => i16::from_le_bytes(raw_field_data[..2].try_into().unwrap()) as usize,
+                    4 => i32::from_le_bytes(raw_field_data[..4].try_into().unwrap()) as usize,
+                    8 => i64::from_le_bytes(raw_field_data[..8].try_into().unwrap()) as usize,
+                    16 => i128::from_le_bytes(raw_field_data[..16].try_into().unwrap()) as usize,
+                    _ => {
+                        serror!(format!(
+                            "Could not convert raw_field data to little endian because unsupported variable field size: {}",
+                            raw_field_data.len()
+                        ));
+                        return Err(());
+                    }
+                };
+            }
+            ConvertEndianess::BigEndian => {
+                self.source_field_real_size = match raw_field_data.len() {
+                    2 => i16::from_be_bytes(raw_field_data[..2].try_into().unwrap()) as usize,
+                    4 => i32::from_be_bytes(raw_field_data[..4].try_into().unwrap()) as usize,
+                    8 => i64::from_be_bytes(raw_field_data[..8].try_into().unwrap()) as usize,
+                    16 => i128::from_be_bytes(raw_field_data[..16].try_into().unwrap()) as usize,
+                    _ => {
+                        serror!(format!(
+                            "Could not convert raw_field data to big endian because unsupported variable field size: {}",
+                            raw_field_data.len()
+                        ));
+                        return Err(());
+                    }
+                };
+            }
         }
         Ok(())
     }
 }
 
 #[derive(Debug)]
+pub enum VariableSizeArithmeticOrder {
+    Forwards,
+    Backwards,
+    Unset,
+}
+
+#[derive(Debug)]
+pub enum ArithmeticOperators {
+    Addition,
+    Subtraction,
+    Multiplication,
+    Division,
+}
+
 pub struct FieldMultiply {
     pub field_name: String,
     pub field_index: usize,

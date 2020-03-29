@@ -1,6 +1,6 @@
 [metadata]
-	name = 'Bravely Default Text'
-	variable_fields = ['']
+	name = 'MBR'
+	variable_size_fields = [['','','','']]
 	multiply_fields = [['4','Partition Entry']]
 
 [[fields]]

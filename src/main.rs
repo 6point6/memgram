@@ -65,7 +65,7 @@ fn run() -> Result<(), ()> {
                 let mut table_data = gram_parse::TableData::new();
 
                 table_data
-                    .create_field_hashmap(&parsed_gram, &cmd_args)?
+                    .create_field_hashmap(&mut parsed_gram, &cmd_args)?
                     .format_fields(&parsed_gram, cmd_args.fmt_endian)?
                     .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
                     .print_table(gram_parse::Tables::Standard);
@@ -95,6 +95,7 @@ fn run() -> Result<(), ()> {
                 file_contents.read_grammer(&cmd_args.grammer_filepath)?;
 
                 let mut parsed_gram = gram_parse::Grammar::new();
+
                 parsed_gram
                     .parse_toml(&file_contents.grammer_contents)?
                     .post_parse_toml()?;
@@ -108,7 +109,7 @@ fn run() -> Result<(), ()> {
                 }
 
                 table_data
-                    .create_field_hashmap(&parsed_gram, &cmd_args)?
+                    .create_field_hashmap(&mut parsed_gram, &cmd_args)?
                     .format_fields(&parsed_gram, cmd_args.fmt_endian)?
                     .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
                     .print_table(gram_parse::Tables::Standard);

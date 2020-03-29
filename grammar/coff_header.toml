@@ -1,6 +1,6 @@
 [metadata]
 	name = 'COFFHeader'
-	variable_fields = ['']
+	variable_size_fields = ['']
 	multiply_fields = ['']
 
 [[fields]]

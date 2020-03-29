@@ -1,12 +1,12 @@
 [metadata]
 	name = 'Bravely Default Text'
-	variable_fields = ['']
-	multiply_fields = [''] 
+	variable_size_fields = [['Next Entry Offset','-','16','Filename']]
+	multiply_fields = [['','']] 
 
 [[fields]] 
-	name = 'Index Entry Length'
+	name = 'Next Entry Offset'
 	size = 4
-	data_type = 'Length'
+	data_type = 'Offset'
 	display_format = 'hexle'
 	description = 'Total size of filename entry in index.fs'
 
