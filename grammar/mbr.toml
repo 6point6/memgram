@@ -1,14 +1,16 @@
 [metadata]
-    name = 'MBR'
+	name = 'Bravely Default Text'
+	variable_fields = ['']
+	multiply_fields = [['4','Partition Entry']]
 
 [[fields]]
     name = "Bootstrap Code"
     size = 0x1BE
-    data_type = "mixed"
+    data_type = "Mixed"
     display_format = 'hex'
     description = 'MBR bootstrap code'
 
-[[fields]] * 4
+[[fields]]
     name = "Partition Entry"
     size = 0x10
     data_type = "Partition entry"
@@ -16,7 +18,7 @@
     description = 'MBR partition entry'
 
 [[fields]]
-    name = "Boot signature"
+    name = "Boot Signature"
     size = 0x02
     data_type = "Signature"
     display_format = 'hex'

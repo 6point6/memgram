@@ -3,6 +3,7 @@ use hex::ToHex;
 use iced_x86::{Decoder, DecoderOptions, Formatter, Instruction, NasmFormatter};
 use prettytable::Table;
 use serde::Deserialize;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
@@ -19,20 +20,20 @@ pub const UTF16LE_TYPE: &str = "utf16be";
 pub const UTF16BE_TYPE: &str = "utf16le";
 pub const X86_TYPE: &str = "x86_32";
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Grammar {
     pub metadata: GrammerMetadata,
     pub fields: Vec<GrammerFields>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerMetadata {
     pub name: String,
     pub variable_fields: Vec<String>,
-    pub repeat_fields: Vec<String>,
+    pub multiply_fields: Vec<(String, String)>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerFields {
     pub name: String,
     pub size: usize,
@@ -308,7 +309,7 @@ impl GrammerMetadata {
         GrammerMetadata {
             name: String::from(""),
             variable_fields: Vec::new(),
-            repeat_fields: Vec::new(),
+            multiply_fields: Vec::new(),
         }
     }
 }
@@ -332,13 +333,6 @@ impl Grammar {
             }
         }
 
-        let mut field_id: u32 = 0;
-
-        for field in &mut self.fields {
-            field.name.push_str(&format!("{:03X}", field_id)[..]);
-            field_id += 1;
-        }
-
         Ok(self)
     }
 
@@ -352,11 +346,106 @@ impl Grammar {
         struct_size
     }
 
-    pub fn post_parse_toml(&mut self, file_contents: &mut String) -> Result<&mut Grammar, ()> {
- 
+    pub fn post_parse_toml(&mut self) -> Result<&mut Grammar, ()> {
+        
+        self.multiply_fields()?;
+
+        self.add_field_id();
+
         Ok(self)
     }
 
+    fn add_field_id(&mut self) {
+        let mut field_id: u32 = 0;
+
+        for field in &mut self.fields {
+            field.name.push_str(&format!("{:03X}", field_id)[..]);
+            field_id += 1;
+        }
+    }
+
+    fn multiply_fields(&mut self) -> Result<(), ()> {
+        if self.metadata.multiply_fields[0].0.is_empty()
+            && self.metadata.multiply_fields[0].1.is_empty()
+        {
+            return Ok(());
+        }
+
+        for multiplier_entry in self.metadata.multiply_fields.iter() {
+            let mut field_multiply = FieldMultiply::new();
+
+            let entry_0 = multiplier_entry.0.as_str();
+            let entry_1 = multiplier_entry.1.as_str();
+
+            for (index, field) in self.fields.iter().enumerate() {
+                if &field.name[..] == entry_0 {
+                    field_multiply.field_name = field.name.clone();
+                    field_multiply.field_index = index;
+
+                    match entry_1.parse::<i32>() {
+                        Ok(multiplier) => {
+                            field_multiply.multiplier = multiplier;
+                            break;
+                        }
+                        Err(_) => {
+                            serror!(format!(
+                                "Could not convert multiplier for field: {} to an interger",
+                                field.name
+                            ));
+                            return Err(());
+                        }
+                    }
+                } else if &field.name[..] == entry_1 {
+                    field_multiply.field_name = field.name.clone();
+                    field_multiply.field_index = index;
+
+                    match entry_0.parse::<i32>() {
+                        Ok(multiplier) => {
+                            field_multiply.multiplier = multiplier;
+                            break;
+                        }
+                        Err(_) => {
+                            serror!(format!(
+                                "Could not convert multiplier for field: {} to an interger",
+                                field.name
+                            ));
+                            return Err(());
+                        }
+                    }
+                } else {
+                    continue;
+                }
+            }
+
+            if field_multiply.field_name.is_empty() || field_multiply.multiplier == 0 {
+                serror! {"Could not find multiply field name or multiplier is 0"};
+                return Err(());
+            }
+
+            for _x in 1..field_multiply.multiplier {
+                self.fields.insert(field_multiply.field_index,self.fields[field_multiply.field_index].clone());
+            }
+            
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct FieldMultiply {
+    pub field_name: String,
+    pub field_index: usize,
+    pub multiplier: i32,
+}
+
+impl FieldMultiply {
+    fn new() -> FieldMultiply {
+        FieldMultiply {
+            field_name: String::from(""),
+            field_index: 0,
+            multiplier: 0,
+        }
+    }
 }
 
 pub struct DissassOutput {

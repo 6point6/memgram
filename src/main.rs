@@ -60,8 +60,7 @@ fn run() -> Result<(), ()> {
 
                 let mut parsed_gram = gram_parse::Grammar::new();
 
-                parsed_gram
-                    .parse_toml(&c_struct.toml_string)?;
+                parsed_gram.parse_toml(&c_struct.toml_string)?;
 
                 let mut table_data = gram_parse::TableData::new();
 
@@ -97,7 +96,8 @@ fn run() -> Result<(), ()> {
 
                 let mut parsed_gram = gram_parse::Grammar::new();
                 parsed_gram
-                    .parse_toml(&file_contents.grammer_contents)?;
+                    .parse_toml(&file_contents.grammer_contents)?
+                    .post_parse_toml()?;
 
                 let mut table_data = gram_parse::TableData::new();
 
