@@ -135,8 +135,8 @@ impl CMDArgParse {
                     self.struct_offset = offset
                         .parse::<u64>()
                         .or_else(|e| {
-                            serror!(format!("Invalid offset: {}, because:{}", offset, e));
-                            Err(())
+                            serror!(format!("Invalid offset: {}, because: {}", offset, e));
+                            return Err(());
                         })
                         .unwrap();
                     Ok(self)

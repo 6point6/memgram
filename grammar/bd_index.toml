@@ -1,6 +1,6 @@
 [metadata]
 	name = 'Bravely Default Text'
-	variable_size_fields = [['Next Entry Offset','-','16','Filename']]
+	variable_size_fields = [['','null','','Filename']]
 	multiply_fields = [['','']] 
 
 [[fields]] 
@@ -8,14 +8,14 @@
 	size = 4
 	data_type = 'Offset'
 	display_format = 'hexle'
-	description = 'Total size of filename entry in index.fs'
+	description = 'Offset to next entry index.fs'
 
 [[fields]]
 	name = 'File Start Offset'
 	size = 4
 	data_type = 'Offset'
 	display_format = 'hexle'
-	description = 'Start offset for file in crowd.fs'
+	description = 'Start offset of file in crowd.fs'
 
 [[fields]]
 	name = 'File Length'
@@ -36,5 +36,5 @@
 	size = 0
 	data_type = 'ASCII'
 	display_format = 'ascii'
-	description = 'N/A'
+	description = 'Name of file in crowd.fs'
 

@@ -9,6 +9,7 @@ use std::convert::TryInto;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
+use std::io::{self, BufReader};
 
 use std::net::{IpAddr, Ipv4Addr};
 use widestring::U16CString;
@@ -119,33 +120,67 @@ impl TableData {
             .add_row(row!["ID", "Field", "Description"]);
 
         for (index, field) in parsed_gram.fields.iter().enumerate() {
-            let name_length: usize = field.name.len() - 3;
-            let id: String = field.name[name_length..].to_string();
+            let field_id = format!("{:03X}", index);
 
             if index % 2 == 0 {
                 self.description_table
-                    .add_row(row![bFG->id,bFG->field.name[..name_length],bFG->field.description]);
+                    .add_row(row![bFG->field_id,bFG->field.name[..],bFG->field.description]);
             } else {
                 self.description_table
-                    .add_row(row![bFM->id,bFM->field.name[..name_length],bFM->field.description]);
+                    .add_row(row![bFM->field_id,bFM->field.name[..],bFM->field.description]);
             }
         }
         self
     }
 
-    pub fn create_var_size_field_hashmap(
+    pub fn create_var_size_hashmap(
         &mut self,
         parsed_gram: &mut Grammar,
         binary_file: &mut File,
+        var_sized_fields_vec: &mut Vec<VariableSizeEntry>,
     ) -> Result<(), ()> {
-        let mut var_sized_fields_vec: Vec<VariableSizeEntry> = Vec::new();
-
-        parsed_gram.create_var_size_entry_vector(&mut var_sized_fields_vec)?;
+        let eof = binary_file.metadata().unwrap().len() as i64;
 
         for field in &mut parsed_gram.fields {
             for entry in var_sized_fields_vec.iter_mut() {
                 if field.name == entry.var_field_name {
-                    let raw_field_data: Vec<u8> = self
+                    match entry.variable_options {
+                        VariableOptions::NullChar => {
+                            let current_position =
+                                binary_file.seek(SeekFrom::Current(0)).unwrap() as i64;
+                            let mut read_size: i64 = 512;
+                            let mut byte_buffer: Vec<u8> = Vec::new();
+                            let mut prev_null = false;
+
+                            if read_size + current_position <= eof {
+                                read_size = 512;
+                            } else {
+                                read_size =
+                                    eof - binary_file.seek(SeekFrom::Current(0)).unwrap() as i64;
+                            }
+
+                            byte_buffer.append(
+                                &mut binary_file
+                                    .bytes()
+                                    .take(eof as usize - current_position as usize)
+                                    .map(|r: Result<u8, _>| r.unwrap())
+                                    .collect(),
+                            );
+
+                            for (index, byte) in byte_buffer.iter().enumerate() {
+                                if *byte == 0x00u8 {
+                                    prev_null = true;
+                                } else if (*byte != 0x00) && prev_null {
+                                    field.size = index;
+                                    binary_file
+                                        .seek(SeekFrom::Start(current_position as u64))
+                                        .unwrap();
+                                    break;
+                                }
+                            }
+                        }
+                        VariableOptions::NoOptions => {
+                            let raw_field_data: Vec<u8> = self
                             .field_hashmap
                             .get(&entry.source_field_name)
                             .ok_or_else(|| {
@@ -156,26 +191,41 @@ impl TableData {
                             })?
                             .clone();
 
-                    if &entry.source_field_display[..] == HEXLE_TYPE {
-                        entry
-                            .convert_field_size(&raw_field_data, ConvertEndianess::LittleEndian)?;
-                    } else {
-                        entry.convert_field_size(&raw_field_data, ConvertEndianess::BigEndian)?;
+                            if &entry.source_field_display[..] == HEXLE_TYPE {
+                                entry.convert_field_size(
+                                    &raw_field_data,
+                                    ConvertEndianess::LittleEndian,
+                                )?;
+                            } else {
+                                entry.convert_field_size(
+                                    &raw_field_data,
+                                    ConvertEndianess::BigEndian,
+                                )?;
+                            }
+
+                            field.size = entry.calculate_variable_size();
+                        }
                     }
-
-                    field.size = entry.calculate_variable_size();
                 }
-            }
 
-            self.field_hashmap.insert(
-                field.name.to_string(),
-                binary_file
-                    .bytes()
-                    .take(field.size)
-                    .map(|r: Result<u8, _>| r.unwrap())
-                    .collect(),
-            );
+                let pos_after_read =
+                    binary_file.seek(SeekFrom::Current(0)).unwrap() as usize + field.size;
+
+                if eof <= pos_after_read as i64 {
+                    serror!(format!("Reached EOF"));
+                    return Ok(());
+                }
+                self.field_hashmap.insert(
+                    field.name.to_string(),
+                    binary_file
+                        .bytes()
+                        .take(field.size)
+                        .map(|r: Result<u8, _>| r.unwrap())
+                        .collect(),
+                );
+            }
         }
+
         Ok(())
     }
 
@@ -187,23 +237,26 @@ impl TableData {
         let binary_file: &mut File = &mut File::open(&cmd_args.binary_filepath)
             .map_err(|_| serror!(format!("Could not open file: {}", cmd_args.binary_filepath)))?;
 
-        check_filesize(
-            binary_file,
-            &cmd_args.binary_filepath,
-            cmd_args.struct_offset,
-            parsed_gram.get_struct_size() as u64,
-        )?; // Need to adjust this as useless now
+        let eof = binary_file.metadata().unwrap().len() as i64;
 
         binary_file
             .seek(SeekFrom::Start(cmd_args.struct_offset))
             .unwrap();
 
-        if !parsed_gram.metadata.variable_size_fields[0].0.is_empty()
-            || !parsed_gram.metadata.variable_size_fields[0].2.is_empty()
-        {
-            self.create_var_size_field_hashmap(parsed_gram, binary_file)?;
+        let mut var_sized_fields_vec: Vec<VariableSizeEntry> = Vec::new();
+        parsed_gram.create_var_size_entry_vector(&mut var_sized_fields_vec)?;
+
+        if !parsed_gram.metadata.variable_size_fields[0].3.is_empty() {
+            self.create_var_size_hashmap(parsed_gram, binary_file, &mut var_sized_fields_vec)?;
         } else {
             for field in &parsed_gram.fields {
+                let pos_after_read =
+                    binary_file.seek(SeekFrom::Current(0)).unwrap() as usize + field.size;
+
+                if eof <= pos_after_read as i64 {
+                    serror!(format!("Structure size after read: {}, will be larger than file size: {} after next read",pos_after_read,eof));
+                    return Err(());
+                }
                 self.field_hashmap.insert(
                     field.name.to_string(),
                     binary_file
@@ -226,7 +279,7 @@ impl TableData {
             let mut raw_hex_string: String = self
                 .field_hashmap
                 .get(&field.name)
-                .ok_or_else(|| serror!(format!("Failed to value for field: {}", field.name)))?
+                .ok_or_else(|| serror!(format!("Failed to get value for field: {}", field.name)))?
                 .encode_hex::<String>()
                 .to_uppercase();
 
@@ -335,25 +388,6 @@ fn format_utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String
     }
 }
 
-fn check_filesize(
-    binary_file: &mut File,
-    binary_path: &str,
-    struct_offset: u64,
-    struct_size: u64,
-) -> Result<(), ()> {
-    let file_size = binary_file.seek(SeekFrom::End(0)).unwrap();
-
-    if file_size >= struct_offset + struct_size {
-        Ok(())
-    } else {
-        serror!(format!(
-            "((offset: {}) + (structure size: {})) is larger than the filesize: {} of {}",
-            struct_offset, struct_size, file_size, binary_path
-        ));
-        Err(())
-    }
-}
-
 impl GrammerMetadata {
     pub fn new() -> GrammerMetadata {
         GrammerMetadata {
@@ -406,19 +440,24 @@ impl Grammar {
         Ok(self)
     }
 
-    fn add_field_id(&mut self) {
-        let mut field_id: u32 = 0;
+    // fn add_field_id(&mut self) {
+    //     let mut field_id: u32 = 0;
 
-        for field in &mut self.fields {
-            field.name.push_str(&format!("{:03X}", field_id)[..]);
-            field_id += 1;
-        }
-    }
+    //     for field in &mut self.fields {
+    //         field.name.push_str(&format!("{:03X}", field_id)[..]);
+    //         field_id += 1;
+    //     }
+    // }
 
     fn create_var_size_entry_vector(
         &mut self,
         var_size_entry_vec: &mut Vec<VariableSizeEntry>,
     ) -> Result<(), ()> {
+
+        if self.metadata.variable_size_fields[0].0.is_empty() && self.metadata.variable_size_fields[0].1.is_empty() && self.metadata.variable_size_fields[0].2.is_empty() && self.metadata.variable_size_fields[0].3.is_empty() {
+            return Ok(());
+        }
+
         let mut variable_size_vector: Vec<VariableSizeEntry> = Vec::new();
 
         for entry in self.metadata.variable_size_fields.iter() {
@@ -480,6 +519,9 @@ impl Grammar {
                     }
                 } else if &field.name[..] == entry_3 {
                     variable_size_entry.var_field_name = field.name.clone();
+                    if entry_1.trim().to_lowercase() == "null" {
+                        variable_size_entry.variable_options = VariableOptions::NullChar;
+                    }
                 }
             }
 
@@ -490,11 +532,25 @@ impl Grammar {
                 ));
                 return Err(());
             } else if variable_size_entry.source_field_name.is_empty() {
-                match entry_0.parse::<i32>() {
-                    Ok(_) => serror!(format!("Source field name: {} does not exist as a field in grammar",entry_2)),
-                    Err(_) => serror!(format!("Source field name: {} does not exist as a field in grammar",entry_0)),
+                match variable_size_entry.variable_options {
+                    VariableOptions::NullChar => (),
+                    VariableOptions::NoOptions => match entry_0.parse::<i32>() {
+                        Ok(_) => {
+                            serror!(format!(
+                                "Source field name: {} does not exist as a field in grammar",
+                                entry_2
+                            ));
+                            return Err(());
+                        }
+                        Err(_) => {
+                            serror!(format!(
+                                "Source field name: {} does not exist as a field in grammar",
+                                entry_0
+                            ));
+                            return Err(());
+                        }
+                    },
                 }
-                return Err(());
             }
 
             variable_size_vector.push(variable_size_entry);
@@ -591,6 +647,7 @@ pub struct VariableSizeEntry {
     pub source_field_real_size: usize,
     pub source_field_display: String,
     pub var_field_name: String,
+    pub variable_options: VariableOptions,
     pub arithemitc_order: VariableSizeArithmeticOrder,
     pub arithmetic_operator: ArithmeticOperators,
     pub adjustment: usize,
@@ -601,6 +658,12 @@ pub enum ConvertEndianess {
     LittleEndian,
 }
 
+#[derive(Debug)]
+pub enum VariableOptions {
+    NoOptions,
+    NullChar,
+}
+
 impl VariableSizeEntry {
     fn new() -> VariableSizeEntry {
         VariableSizeEntry {
@@ -609,6 +672,7 @@ impl VariableSizeEntry {
             source_field_real_size: 0,
             source_field_display: String::from(""),
             var_field_name: String::from(""),
+            variable_options: VariableOptions::NoOptions,
             arithemitc_order: VariableSizeArithmeticOrder::Unset,
             arithmetic_operator: ArithmeticOperators::Addition,
             adjustment: 0,
