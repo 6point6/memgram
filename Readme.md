@@ -53,20 +53,22 @@ C structs containing basic types can be converted to a grammar file. C basic typ
 
 ### Multipliying Field Entries
 
-To save typing, it's possible to multiply a grammar entry a specified number of times. For example below is the entire grammar for the `Master Boot Record` structure:
+To save typing, it's possible to multiply a grammar entry a specified number of times. In the example below, the field `Partition Entry` will be multiplied four times:
 
 ```toml
 [metadata]
     name = 'MBR'
+    variable_size_fields = [['','','','']]
+    multiply_fields = [['Partition Entry','4']]
 
 [[fields]]
     name = "Bootstrap Code"
     size = 0x1BE
-    data_type = "mixed"
+    data_type = "Mixed"
     display_format = 'hex'
     description = 'MBR bootstrap code'
 
-[[fields]] * 4
+[[fields]]
     name = "Partition Entry"
     size = 0x10
     data_type = "Partition entry"
@@ -81,17 +83,81 @@ To save typing, it's possible to multiply a grammar entry a specified number of 
     description = 'MBR boot signature'
 ```
 
+### Variable Length Fields
+
+The size of a field can be non-static and depend on other factors. For example, if the value of `variable_size_fields` is set to `[['Next Entry Offset','-','16','Filename']]` , `memgram` will set the `size` of the field called `Filename` to ((value of the data stored at `Next Entry Offset`) - 16)).
+
 ## Grammar Format
 
-Grammars describe the data `memgram` reads, formats and displays. Grammars are written in a TOML like syntax, in fact the syntax is almost identical apart from a few hacks.
+Grammars describe the data `memgram` reads, formats and displays. Grammars are written in TOML syntax.
 
-Each grammar file starts with what is referred to in TOML syntax as a [Table](https://github.com/toml-lang/toml#user-content-table). The first Table in a grammar file is allways `[metadata]` and holds a single key value pair. The key is allways `name`, and the user can fill in the value with what they wish to name the data structure, e.g `name = MBR`. 
+### Metadata
 
-An example is shown below:
+Each grammar file starts with what is referred to in TOML syntax as a [Table](https://github.com/toml-lang/toml#user-content-table). The first Table in a grammar file is allways `[metadata]` and holds a several key value pairs. If uneeded, the value for each of these key pairs can be left in a default state with no information in them. For example the three fields can be left as:
+
 ```toml
 [metadata]
-    name = 'MBR'
+    name = ''
+    variable_size_fields = [['','','','']]
+    multiply_fields = [['','']]
 ```
+
+Fields can **not** be missing. For example, below is invalid syntax:
+
+```toml
+[metadata]
+    name = ''
+```
+
+A default value must exist for each key. For example, the following syntax will **not** work because default values are missing for `name` and `multiply_fields`:
+
+```toml
+[metadata]
+    name =
+    variable_size_fields = [['','','','']]
+    multiply_fields =
+```
+
+#### Name
+
+`name` holds the name of the data structure, e.g `name = MBR`.
+
+#### Variable Size Fields
+
+`variable_size_fields` holds data about variable length fields. A variable length field allows for the size of a field in a grammar to be dependent on other factors instead of being a static value. 
+
+At the moment, `memgram` supports the format:
+
+ `[['INTEGER | SOURCE FIELD NAME', 'ARTHEMITIC | OPTION', 'INTEGER  | SOURCE FIELD NAME','VARIABLE FIELD NAME']]`
+
+##### Format Examples
+
+Make the size of variable field `Filename` equal to that of the value of data stored at `Next Entry Offset`:
+* Set the value to `[['Next Entry Offset','','','Filename']]` or `[['','','Next Entry Offset','Filename']]`
+* In this case, the `Next Entry Offset` **must** be at either position 1 or position 3 of the String array
+
+Make the size of variable field `Filename` equal to that of ((value of data stored at `Next Entry Offset`) - 16):
+* `[['Next Entry Offset','-','16','Filename']]` 
+* `+, -, *, /` are all valid arithmetic operators and **must** be in position 2 of the String array.
+
+Make the size of variable field `Filename` equal to that of (512 *  `Next Entry Offset`):
+* `[['512','*','Next Entry Offset','Filename']]` 
+
+Make the size of variable field `Filename` equal to that of first character after end of null string
+* `[['','null','','Filename']]`
+
+Multiple entries variable fields can be specified by adding another array like below:
+* `[['512','*','Next Entry Offset','Filename'],['','null','','File Length']]` 
+
+#### Multiply Fields
+
+`multiply_fields` holds data about which fields you wish to multiply. A multiplier tells `memgram` to repeat an entry a given number of times. For example, when creating a grammar describing the `Master Boot Record` structure, instead of creating four different entries for four parition entries, we can multiply a single partition entry four times:
+
+A multiplier is specfied in the format: `['MULTIPLIED FIELD NAME | MULTIPLIER', 'MULTIPLIED FIELD NAME | MULTIPLIER']`
+
+For example: `[['Paritition Entry','4']]`  or  `[['4','Partition Entry']]`  are both valid. To multipliy more the one field, add annother array like so `[['4,'Partition Entry'],['2','Other Field']]`/
+
+### Fields
 
 Following this a series of what is referred to in TOML as an [Array of tables](https://github.com/toml-lang/toml#user-content-table). Each entry contains data describing a single field in the data structure.
 
@@ -113,19 +179,6 @@ An entry example:
     display_format = 'hex'
     description = 'MBR bootstrap code'
 ```
-
-Specifiying a multiplier for an entry is possible. A multiplier tells `memgram` to repeat an entry a given number of times. For example, when creating a grammar describing the `Master Boot Record` structure, instead of creating four different entries for four parition entries, we can multiply a single partition entry four times:
-
-```toml
-[[fields]] * 4
-    name = "Partition Entry"
-    size = 0x10
-    data_type = "Partition entry"
-    display_format = 'hex'
-    description = 'MBR partition entry'
-```
-
-A multiplier is specfied by adding `* x` after a `[[fields]]` entry, where x is the number of times you wish to repeat the entry.
 
 ## Installation
 
@@ -175,4 +228,3 @@ The `-s`(structure start offset) `-E`(reverse endian for hex view) `-e` (reverse
 Currentlly there is **no** support for the following:
 
 * Non-standard C structures or arrays
-* Fields size based on other field sizes
