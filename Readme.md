@@ -13,7 +13,7 @@
 
 # About
 
-`memgram` has been developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse engineering can be quickly described in an easily readable TOML-like format called a grammar. `memgram` reads a file containing a custom data structure, applies a grammar and displays formatted prettified output of data.
+`memgram` has been developed to aid with reverse engineering unknown file formats and memory structures. Custom data structures found when reverse engineering can be quickly described in an easily readable TOML compliant format called a *grammar*. `memgram` reads a file containing a custom data structure, applies a grammar and displays formatted prettified output of data.
 
 `memgram` is heavily inspired by the hex editors:
 * [Synalyze It!](https://www.synalysis.net/)

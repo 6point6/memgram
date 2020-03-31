@@ -9,8 +9,6 @@ use std::convert::TryInto;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::SeekFrom;
-use std::io::{self, BufReader};
-
 use std::net::{IpAddr, Ipv4Addr};
 use widestring::U16CString;
 
@@ -156,13 +154,13 @@ impl TableData {
                                 read_size = 512;
                             } else {
                                 read_size =
-                                    eof - binary_file.seek(SeekFrom::Current(0)).unwrap() as i64;
+                                    eof - current_position;
                             }
 
                             byte_buffer.append(
                                 &mut binary_file
                                     .bytes()
-                                    .take(eof as usize - current_position as usize)
+                                    .take(read_size as usize)
                                     .map(|r: Result<u8, _>| r.unwrap())
                                     .collect(),
                             );
@@ -212,8 +210,8 @@ impl TableData {
                     binary_file.seek(SeekFrom::Current(0)).unwrap() as usize + field.size;
 
                 if eof <= pos_after_read as i64 {
-                    serror!(format!("Reached EOF"));
-                    return Ok(());
+                    serror!("Reached EOF");
+                    return Ok(())
                 }
                 self.field_hashmap.insert(
                     field.name.to_string(),
@@ -703,7 +701,7 @@ impl VariableSizeEntry {
 
     pub fn convert_field_size(
         &mut self,
-        raw_field_data: &Vec<u8>,
+        raw_field_data: &[u8],
         endianess: ConvertEndianess,
     ) -> Result<(), ()> {
         match endianess {

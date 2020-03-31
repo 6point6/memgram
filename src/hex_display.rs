@@ -20,11 +20,9 @@ pub fn print_hex_table(
             })?
             .clone();
 
-        if hex_endianess {
-            if &field.display_format[..] != gram_parse::ASCII_TYPE {
+        if hex_endianess && &field.display_format[..] != gram_parse::ASCII_TYPE {
                 data.reverse()
             }
-        }
 
         hex_data.append(&mut data);
     }
@@ -55,6 +53,6 @@ pub fn print_hex_table(
         .finish();
 
     hex_view.print().unwrap();
-    println!("");
+    println!();
     Ok(())
 }

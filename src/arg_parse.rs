@@ -107,25 +107,23 @@ impl CMDArgParse {
             && self.arg_map.contains_key(BINARY_FILE_FLAG)
         {
             Ok(CMDOptions::DisplayNormal)
-        } else {
-            if self.arg_map.contains_key(OUTPUT_FILE_FLAG)
+        } else if self.arg_map.contains_key(OUTPUT_FILE_FLAG)
                 && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
                 && !self.arg_map.contains_key(OFFSET_FLAG)
                 && !self.arg_map.contains_key(BINARY_FILE_FLAG)
             {
-                return Ok(CMDOptions::ConvertWrite);
+                Ok(CMDOptions::ConvertWrite)
             } else if self.arg_map.contains_key(BINARY_FILE_FLAG)
                 && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
                 && !self.arg_map.contains_key(OUTPUT_FILE_FLAG)
                 && !self.arg_map.contains_key(GRAMMER_FILE_FLAG)
             {
-                return Ok(CMDOptions::ConvertDisplay);
+                Ok(CMDOptions::ConvertDisplay)
             } else {
                 serror!("Unsupported flag combination");
                 errors::usage();
                 Err(())
             }
-        }
     }
 
     pub fn parse_offset_flag(&mut self, offset_flag: &str) -> Result<&mut CMDArgParse, ()> {
@@ -136,7 +134,7 @@ impl CMDArgParse {
                         .parse::<u64>()
                         .or_else(|e| {
                             serror!(format!("Invalid offset: {}, because: {}", offset, e));
-                            return Err(());
+                            Err(())
                         })
                         .unwrap();
                     Ok(self)
