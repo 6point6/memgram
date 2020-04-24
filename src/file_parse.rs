@@ -5,12 +5,12 @@ pub struct FileData {
 }
 
 impl FileData {
-    pub fn new() -> FileData {
-        FileData {
+    pub fn new() -> Self {
+        Self {
             grammer_contents: String::from(""),
         }
     }
-    pub fn read_grammer(&mut self, file_path: &str) -> Result<&mut FileData, ()> {
+    pub fn read_grammer(&mut self, file_path: &str) -> Result<&mut Self, ()> {
         self.grammer_contents = read_file(file_path)?;
         Ok(self)
     }

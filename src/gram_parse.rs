@@ -56,8 +56,8 @@ pub enum Tables {
 }
 
 impl TableData {
-    pub fn new() -> TableData {
-        TableData {
+    pub fn new() -> Self {
+        Self {
             field_hashmap: HashMap::new(),
             field_fmt_hashmap: HashMap::new(),
             field_str_hashmap: HashMap::new(),
@@ -77,7 +77,7 @@ impl TableData {
         &mut self,
         parsed_gram: &Grammar,
         mut struct_offset: usize,
-    ) -> Result<&mut TableData, ()> {
+    ) -> Result<&mut Self, ()> {
         self.standard_table.add_row(row![
             "ID",
             "Field",
@@ -113,7 +113,7 @@ impl TableData {
         Ok(self)
     }
 
-    pub fn fill_description_table(&mut self, parsed_gram: &Grammar) -> &mut TableData {
+    pub fn fill_description_table(&mut self, parsed_gram: &Grammar) -> &mut Self {
         self.description_table
             .add_row(row!["ID", "Field", "Description"]);
 
@@ -153,8 +153,7 @@ impl TableData {
                             if read_size + current_position <= eof {
                                 read_size = 512;
                             } else {
-                                read_size =
-                                    eof - current_position;
+                                read_size = eof - current_position;
                             }
 
                             byte_buffer.append(
@@ -211,7 +210,7 @@ impl TableData {
 
                 if eof <= pos_after_read as i64 {
                     serror!("Reached EOF");
-                    return Ok(())
+                    return Ok(());
                 }
                 self.field_hashmap.insert(
                     field.name.to_string(),
@@ -231,7 +230,7 @@ impl TableData {
         &mut self,
         parsed_gram: &mut Grammar,
         cmd_args: &arg_parse::CMDArgParse,
-    ) -> Result<&mut TableData, ()> {
+    ) -> Result<&mut Self, ()> {
         let binary_file: &mut File = &mut File::open(&cmd_args.binary_filepath)
             .map_err(|_| serror!(format!("Could not open file: {}", cmd_args.binary_filepath)))?;
 
@@ -272,7 +271,7 @@ impl TableData {
         &mut self,
         parsed_gram: &Grammar,
         fmt_endian_flag: bool,
-    ) -> Result<&mut TableData, ()> {
+    ) -> Result<&mut Self, ()> {
         for field in parsed_gram.fields.iter() {
             let mut raw_hex_string: String = self
                 .field_hashmap
@@ -397,15 +396,15 @@ impl GrammerMetadata {
 }
 
 impl Grammar {
-    pub fn new() -> Grammar {
-        Grammar {
+    pub fn new() -> Self {
+        Self {
             metadata: GrammerMetadata::new(),
             fields: Vec::new(),
         }
     }
 
-    pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Grammar, ()> {
-        match toml::from_str::<Grammar>(file_contents) {
+    pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Self, ()> {
+        match toml::from_str::<Self>(file_contents) {
             Ok(gram) => {
                 *self = gram;
             }
@@ -428,7 +427,7 @@ impl Grammar {
         struct_size
     }
 
-    pub fn post_parse_toml(&mut self) -> Result<&mut Grammar, ()> {
+    pub fn post_parse_toml(&mut self) -> Result<&mut Self, ()> {
         if !self.metadata.multiply_fields[0].0.is_empty()
             && !self.metadata.multiply_fields[0].1.is_empty()
         {
@@ -451,8 +450,11 @@ impl Grammar {
         &mut self,
         var_size_entry_vec: &mut Vec<VariableSizeEntry>,
     ) -> Result<(), ()> {
-
-        if self.metadata.variable_size_fields[0].0.is_empty() && self.metadata.variable_size_fields[0].1.is_empty() && self.metadata.variable_size_fields[0].2.is_empty() && self.metadata.variable_size_fields[0].3.is_empty() {
+        if self.metadata.variable_size_fields[0].0.is_empty()
+            && self.metadata.variable_size_fields[0].1.is_empty()
+            && self.metadata.variable_size_fields[0].2.is_empty()
+            && self.metadata.variable_size_fields[0].3.is_empty()
+        {
             return Ok(());
         }
 
@@ -663,8 +665,8 @@ pub enum VariableOptions {
 }
 
 impl VariableSizeEntry {
-    fn new() -> VariableSizeEntry {
-        VariableSizeEntry {
+    fn new() -> Self {
+        Self {
             source_field_name: String::from(""),
             source_field_index: 0,
             source_field_real_size: 0,
@@ -762,8 +764,8 @@ pub struct FieldMultiply {
 }
 
 impl FieldMultiply {
-    fn new() -> FieldMultiply {
-        FieldMultiply {
+    fn new() -> Self {
+        Self {
             field_name: String::from(""),
             field_index: 0,
             multiplier: 0,
@@ -777,8 +779,8 @@ pub struct DissassOutput {
 }
 
 impl DissassOutput {
-    fn new() -> DissassOutput {
-        DissassOutput {
+    fn new() -> Self {
+        Self {
             output: String::from(""),
             line_count: 0,
         }

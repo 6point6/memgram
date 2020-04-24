@@ -21,8 +21,8 @@ pub fn print_hex_table(
             .clone();
 
         if hex_endianess && &field.display_format[..] != gram_parse::ASCII_TYPE {
-                data.reverse()
-            }
+            data.reverse()
+        }
 
         hex_data.append(&mut data);
     }

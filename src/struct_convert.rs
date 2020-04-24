@@ -9,15 +9,15 @@ pub struct CStruct {
 }
 
 impl CStruct {
-    pub fn new() -> CStruct {
-        CStruct {
+    pub fn new() -> Self {
+        Self {
             name: String::from(""),
             fields: Vec::new(),
             toml_string: String::from(""),
         }
     }
 
-    pub fn parse_c_struct(&mut self, struct_filepath: &str) -> Result<&mut CStruct, ()> {
+    pub fn parse_c_struct(&mut self, struct_filepath: &str) -> Result<&mut Self, ()> {
         let mut prev_index: usize = 0;
         let mut next_index: usize = 0;
 
@@ -85,7 +85,7 @@ impl CStruct {
         Ok(self)
     }
 
-    pub fn build_toml_string(&mut self) -> Result<&mut CStruct, ()> {
+    pub fn build_toml_string(&mut self) -> Result<&mut Self, ()> {
         self.toml_string.push_str("[metadata]\r\n");
         self.toml_string
             .push_str(&format!("\tname = '{}'\r\n", self.name)[..]);
@@ -108,7 +108,7 @@ impl CStruct {
         Ok(self)
     }
 
-    pub fn write_toml_file(&mut self, output_path: &str) -> Result<&mut CStruct, ()> {
+    pub fn write_toml_file(&mut self, output_path: &str) -> Result<&mut Self, ()> {
         let mut grammer_file = match File::create(output_path) {
             Ok(f) => f,
             Err(e) => {

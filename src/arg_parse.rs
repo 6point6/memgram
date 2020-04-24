@@ -34,8 +34,8 @@ pub enum CMDOptions {
 }
 
 impl CMDArgParse {
-    pub fn new() -> CMDArgParse {
-        CMDArgParse {
+    pub fn new() -> Self {
+        Self {
             raw_args: env::args().collect(),
             arg_map: HashMap::new(),
             grammer_filepath: String::from(""),
@@ -50,7 +50,7 @@ impl CMDArgParse {
         }
     }
 
-    pub fn parse_cmd_args(&mut self) -> Result<&mut CMDArgParse, ()> {
+    pub fn parse_cmd_args(&mut self) -> Result<&mut Self, ()> {
         match self.raw_args.len() {
             1 => {
                 errors::usage();
@@ -72,7 +72,7 @@ impl CMDArgParse {
         }
     }
 
-    pub fn parse_file_flag(&mut self, flag: &str) -> Result<&mut CMDArgParse, ()> {
+    pub fn parse_file_flag(&mut self, flag: &str) -> Result<&mut Self, ()> {
         let file_path = self
             .arg_map
             .get(flag)
@@ -108,25 +108,25 @@ impl CMDArgParse {
         {
             Ok(CMDOptions::DisplayNormal)
         } else if self.arg_map.contains_key(OUTPUT_FILE_FLAG)
-                && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
-                && !self.arg_map.contains_key(OFFSET_FLAG)
-                && !self.arg_map.contains_key(BINARY_FILE_FLAG)
-            {
-                Ok(CMDOptions::ConvertWrite)
-            } else if self.arg_map.contains_key(BINARY_FILE_FLAG)
-                && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
-                && !self.arg_map.contains_key(OUTPUT_FILE_FLAG)
-                && !self.arg_map.contains_key(GRAMMER_FILE_FLAG)
-            {
-                Ok(CMDOptions::ConvertDisplay)
-            } else {
-                serror!("Unsupported flag combination");
-                errors::usage();
-                Err(())
-            }
+            && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
+            && !self.arg_map.contains_key(OFFSET_FLAG)
+            && !self.arg_map.contains_key(BINARY_FILE_FLAG)
+        {
+            Ok(CMDOptions::ConvertWrite)
+        } else if self.arg_map.contains_key(BINARY_FILE_FLAG)
+            && self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
+            && !self.arg_map.contains_key(OUTPUT_FILE_FLAG)
+            && !self.arg_map.contains_key(GRAMMER_FILE_FLAG)
+        {
+            Ok(CMDOptions::ConvertDisplay)
+        } else {
+            serror!("Unsupported flag combination");
+            errors::usage();
+            Err(())
+        }
     }
 
-    pub fn parse_offset_flag(&mut self, offset_flag: &str) -> Result<&mut CMDArgParse, ()> {
+    pub fn parse_offset_flag(&mut self, offset_flag: &str) -> Result<&mut Self, ()> {
         if self.arg_map.contains_key(offset_flag) {
             match self.arg_map.get(offset_flag).unwrap() {
                 Some(offset) => {
@@ -150,7 +150,7 @@ impl CMDArgParse {
         }
     }
 
-    pub fn parse_help_flag(&mut self, help_flag: &str) -> &mut CMDArgParse {
+    pub fn parse_help_flag(&mut self, help_flag: &str) -> &mut Self {
         if self.arg_map.contains_key(help_flag) {
             self.help_flag = true
         }
@@ -162,7 +162,7 @@ impl CMDArgParse {
         fmt_endian_flag: &str,
         hex_endian_flag: &str,
         description_flag: &str,
-    ) -> &mut CMDArgParse {
+    ) -> &mut Self {
         if self.arg_map.contains_key(fmt_endian_flag) {
             self.fmt_endian = true
         }
