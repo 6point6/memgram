@@ -1,3 +1,4 @@
+//! Module that deals with converting raw u8 arrays into formatted strings. e.g utf16 byte array to utf16 string
 use iced_x86::{Decoder, DecoderOptions, Formatter, Instruction, NasmFormatter};
 use std::net::{IpAddr, Ipv4Addr};
 use widestring::U16CString;
@@ -64,6 +65,7 @@ pub fn utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String, (
     }
 }
 
+/// Holds the outputted Assembly as well as the line count
 pub struct DissassOutput {
     pub output: String,
     pub line_count: u32,
@@ -77,6 +79,7 @@ impl DissassOutput {
         }
     }
 
+    /// Converts u8 array into x86 assembly string and populates self.output and self.line_count
     pub fn format_x86(&mut self, bitness: u32, machine_code: &[u8]) {
         let mut decoder = Decoder::new(bitness, machine_code, DecoderOptions::NONE);
         let mut formatter = NasmFormatter::new();
