@@ -27,12 +27,12 @@ fn run() -> Result<(), ()> {
 
     match cmd_args.run_cmds() {
         Ok(r) => match r {
-            arg_parse::CMDOptions::ConvertWrite => {
+            arg_parse::RunOptions::CStructConvertWrite => {
                 let mut c_struct = struct_convert::CStruct::new();
 
                 cmd_args
-                    .parse_file_flag(arg_parse::OUTPUT_FILE_FLAG)?
-                    .parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?;
+                    .parse_file_arg(arg_parse::OUTPUT_FILE_FLAG)?
+                    .parse_file_arg(arg_parse::CSTRUCT_FILE_FLAG)?;
 
                 c_struct
                     .parse_c_struct(&cmd_args.cstruct_filepath)?
@@ -41,13 +41,13 @@ fn run() -> Result<(), ()> {
 
                 Ok(())
             }
-            arg_parse::CMDOptions::ConvertDisplay => {
+            arg_parse::RunOptions::CStructConvertDisplay => {
                 let mut c_struct = struct_convert::CStruct::new();
 
                 cmd_args
-                    .parse_file_flag(arg_parse::CSTRUCT_FILE_FLAG)?
-                    .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
-                    .parse_offset_flag(arg_parse::OFFSET_FLAG)?
+                    .parse_file_arg(arg_parse::CSTRUCT_FILE_FLAG)?
+                    .parse_file_arg(arg_parse::BINARY_FILE_FLAG)?
+                    .parse_offset_flag(arg_parse::STRUCT_OFFSET_FLAG)?
                     .parse_bool_flags(
                         arg_parse::FMT_ENDIAN_FLAG,
                         arg_parse::HEX_ENDIAN_FLAG,
@@ -79,11 +79,11 @@ fn run() -> Result<(), ()> {
 
                 Ok(())
             }
-            arg_parse::CMDOptions::DisplayNormal => {
+            arg_parse::RunOptions::DisplayNormal => {
                 cmd_args
-                    .parse_file_flag(arg_parse::GRAMMER_FILE_FLAG)?
-                    .parse_file_flag(arg_parse::BINARY_FILE_FLAG)?
-                    .parse_offset_flag(arg_parse::OFFSET_FLAG)?
+                    .parse_file_arg(arg_parse::GRAMMER_FILE_FLAG)?
+                    .parse_file_arg(arg_parse::BINARY_FILE_FLAG)?
+                    .parse_offset_flag(arg_parse::STRUCT_OFFSET_FLAG)?
                     .parse_bool_flags(
                         arg_parse::FMT_ENDIAN_FLAG,
                         arg_parse::HEX_ENDIAN_FLAG,
