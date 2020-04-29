@@ -1,10 +1,14 @@
 use std::fs;
 use std::io::prelude::*;
 
+/// Holds the contents of the parsed C struct fields and converted grammar contents
 pub struct CStruct {
+    /// Name of the C struct (Also name of grammar)
     pub name: String,
+    /// Vector of (C type, field_name) created by parse_c_Struct
     pub fields: Vec<(String, String)>,
-    pub toml_string: String,
+    /// String containing the resulting grammar contents
+    pub grammar_contents: String,
 }
 
 impl CStruct {
@@ -12,10 +16,13 @@ impl CStruct {
         Self {
             name: String::from(""),
             fields: Vec::new(),
-            toml_string: String::from(""),
+            grammar_contents: String::from(""),
         }
     }
 
+    /// Parses the contents of a file containing a C struct
+    ///
+    /// A Vector of (String, String) is built in self.fields in the format (c type, field_name)
     pub fn parse_c_struct(&mut self, struct_filepath: &str) -> Result<&mut Self, ()> {
         let mut prev_index: usize = 0;
         let mut next_index: usize = 0;
@@ -89,30 +96,33 @@ impl CStruct {
         Ok(self)
     }
 
-    pub fn build_toml_string(&mut self) -> Result<&mut Self, ()> {
-        self.toml_string.push_str("[metadata]\r\n");
-        self.toml_string
+    /// Builds the contents of the output grammar file line by line by pushing data to self.grammar_contents
+    pub fn build_grammar_contents(&mut self) -> Result<&mut Self, ()> {
+        self.grammar_contents.push_str("[metadata]\r\n");
+        self.grammar_contents
             .push_str(&format!("\tname = '{}'\r\n", self.name)[..]);
-        self.toml_string
+        self.grammar_contents
             .push_str("\tvariable_size_fields = [['','','','']]\r\n");
-        self.toml_string
+        self.grammar_contents
             .push_str("\tmultiply_fields = [['','']]\r\n");
 
         for field in self.fields.iter() {
-            self.toml_string.push_str("\r\n[[fields]]\r\n");
-            self.toml_string
+            self.grammar_contents.push_str("\r\n[[fields]]\r\n");
+            self.grammar_contents
                 .push_str(&format!("\tname = '{}'\r\n", field.1));
-            self.toml_string
+            self.grammar_contents
                 .push_str(&format!("\tsize = {}\r\n", get_field_size(&field.0)?));
-            self.toml_string
+            self.grammar_contents
                 .push_str(&format!("\tdata_type = '{}'\r\n", field.0));
-            self.toml_string.push_str("\tdisplay_format = 'hex'\r\n");
-            self.toml_string.push_str("\tdescription = 'N/A'\r\n");
+            self.grammar_contents
+                .push_str("\tdisplay_format = 'hex'\r\n");
+            self.grammar_contents.push_str("\tdescription = 'N/A'\r\n");
         }
         Ok(self)
     }
 
-    pub fn write_toml_file(&mut self, output_path: &str) -> Result<&mut Self, ()> {
+    /// Writes the newly created grammar contents in self.grammar_contents to a toml file specified by output_path
+    pub fn write_grammar_file(&mut self, output_path: &str) -> Result<&mut Self, ()> {
         let mut grammer_file = match fs::File::create(output_path) {
             Ok(f) => f,
             Err(e) => {
@@ -124,7 +134,7 @@ impl CStruct {
             }
         };
 
-        match grammer_file.write_all(self.toml_string.as_bytes()) {
+        match grammer_file.write_all(self.grammar_contents.as_bytes()) {
             Ok(_) => {
                 println!(
                     "[+] Successfully converted C struct {} to grammar file {}",
@@ -143,6 +153,10 @@ impl CStruct {
     }
 }
 
+/// Get's the field size based on the C basic type
+///
+/// This assumes that a char is 1 byte and an int is 4 bytes etc.
+/// This may not allways be the case!
 fn get_field_size(field_type: &str) -> Result<&str, ()> {
     let l_field_type = field_type.to_lowercase();
     match &l_field_type[..] {

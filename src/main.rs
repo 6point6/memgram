@@ -36,8 +36,8 @@ fn run() -> Result<(), ()> {
 
                 c_struct
                     .parse_c_struct(&cmd_args.cstruct_filepath)?
-                    .build_toml_string()?
-                    .write_toml_file(&cmd_args.output_filepath)?;
+                    .build_grammar_contents()?
+                    .write_grammar_file(&cmd_args.output_filepath)?;
 
                 Ok(())
             }
@@ -56,11 +56,11 @@ fn run() -> Result<(), ()> {
 
                 c_struct
                     .parse_c_struct(&cmd_args.cstruct_filepath)?
-                    .build_toml_string()?;
+                    .build_grammar_contents()?;
 
                 let mut parsed_gram = gram_parse::Grammar::new();
 
-                parsed_gram.parse_toml(&c_struct.toml_string)?;
+                parsed_gram.parse_toml(&c_struct.grammar_contents)?;
 
                 let mut table_data = gram_parse::TableData::new();
 
