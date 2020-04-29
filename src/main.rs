@@ -1,6 +1,7 @@
 #[macro_use]
 mod errors;
 mod arg_parse;
+mod format;
 mod gram_parse;
 mod hex_display;
 mod struct_convert;

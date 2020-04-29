@@ -1,5 +1,6 @@
 //! Module for creating and printing data extracted from a binary file based it's corrosponding grammar.
 use crate::arg_parse;
+use crate::format;
 use crate::gram_parse;
 use hex::ToHex;
 use prettytable::Table;
@@ -170,7 +171,7 @@ impl TableData {
                             })?
                             .clone();
 
-                            if &entry.source_field_display[..] == gram_parse::HEXLE_TYPE {
+                            if &entry.source_field_display[..] == format::HEXLE_TYPE {
                                 entry.convert_field_size(
                                     &raw_field_data,
                                     gram_parse::ConvertEndianess::LittleEndian,
@@ -296,20 +297,18 @@ impl TableData {
             };
 
             let formatted_data = match &field.display_format[..] {
-                gram_parse::HEXLE_TYPE => reverse_hex_string(),
-                gram_parse::ASCII_TYPE => {
-                    raw_field_data.iter().map(|ascii| *ascii as char).collect()
-                }
-                gram_parse::IPV4BE_TYPE => gram_parse::format_ipv4_string(&raw_field_data)?,
-                gram_parse::IPV4LE_TYPE => {
+                format::HEXLE_TYPE => reverse_hex_string(),
+                format::ASCII_TYPE => raw_field_data.iter().map(|ascii| *ascii as char).collect(),
+                format::IPV4BE_TYPE => format::ipv4_string(&raw_field_data)?,
+                format::IPV4LE_TYPE => {
                     let mut reversed_raw_field_data: Vec<u8> = raw_field_data.clone();
                     reversed_raw_field_data.reverse();
-                    gram_parse::format_ipv4_string(&reversed_raw_field_data)?
+                    format::ipv4_string(&reversed_raw_field_data)?
                 }
-                gram_parse::UTF16BE_TYPE => gram_parse::format_utf16_string(raw_field_data, false)?,
-                gram_parse::UTF16LE_TYPE => gram_parse::format_utf16_string(raw_field_data, true)?,
-                gram_parse::X86_TYPE => {
-                    let mut x86_disassembly = gram_parse::DissassOutput::new();
+                format::UTF16BE_TYPE => format::utf16_string(raw_field_data, false)?,
+                format::UTF16LE_TYPE => format::utf16_string(raw_field_data, true)?,
+                format::X86_TYPE => {
+                    let mut x86_disassembly = format::DissassOutput::new();
                     x86_disassembly.format_x86(16, raw_field_data);
 
                     if x86_disassembly.line_count > 5 {

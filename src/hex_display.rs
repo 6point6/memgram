@@ -1,4 +1,5 @@
 //! Module for printing a colored hextable
+use crate::format;
 use crate::gram_parse;
 use hexplay::HexViewBuilder;
 use std::collections::HashMap;
@@ -22,7 +23,7 @@ pub fn print_hex_table(
             })?
             .clone();
 
-        if hex_endianess && &field.display_format[..] != gram_parse::ASCII_TYPE {
+        if hex_endianess && &field.display_format[..] != format::ASCII_TYPE {
             data.reverse()
         }
 
