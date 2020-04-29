@@ -1,10 +1,10 @@
 #[macro_use]
 mod errors;
 mod arg_parse;
-mod file_parse;
 mod gram_parse;
 mod hex_display;
 mod struct_convert;
+use std::fs;
 
 #[macro_use]
 extern crate prettytable;
@@ -90,15 +90,17 @@ fn run() -> Result<(), ()> {
                         arg_parse::DESCRIPTION_FLAG,
                     );
 
-                let mut file_contents = file_parse::FileData::new();
-
-                file_contents.read_grammar(&cmd_args.grammar_filepath)?;
+                let file_contents =
+                    fs::read_to_string(&cmd_args.grammar_filepath).map_err(|e| {
+                        serror!(format!(
+                            "Error opening file: {}, because:{}",
+                            &cmd_args.grammar_filepath, e
+                        ))
+                    })?;
 
                 let mut parsed_gram = gram_parse::Grammar::new();
 
-                parsed_gram
-                    .parse_toml(&file_contents.grammar_contents)?
-                    .post_parse_toml()?;
+                parsed_gram.parse_toml(&file_contents)?.post_parse_toml()?;
 
                 let mut table_data = gram_parse::TableData::new();
 
