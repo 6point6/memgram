@@ -1,5 +1,7 @@
-#[macro_export]
+//! Module for printing memgram error and usage information
 
+#[macro_export]
+/// Prints error information to stderr including cause, line number and file
 macro_rules! serror {
     ($cause:expr) => {
         eprintln!(
@@ -11,7 +13,10 @@ macro_rules! serror {
     };
 }
 
+/// Specifies how memgram takes CLI arguments
 const USAGE_STRING: &str = "memgram [OPTION] [VALUE]";
+
+/// Memgram CLI argument options and their corresponding descriptions
 const OPTIONS: [&str; 9] = [
     "-b     binary filepath",
     "-c     c struct filepath",
@@ -24,12 +29,14 @@ const OPTIONS: [&str; 9] = [
     "-s     offset into binary the file structure starts at",
 ];
 
+/// Example usage strings for memgram
 const EXAMPLES: [&str; 3] = [
     "memgram -b ./examples/test_formats.bin -g ./grammar/test_formats.toml -s 0",
     "memgram -c ./examples/COFFHeader.h -o ./grammar/COFFHeader.toml",
     "memgram -c ./examples/COFFHeader.h -b .~/Downloads/binary.exe -o 244 -e -E -d",
 ];
 
+/// Prints memgram usage information
 pub fn usage() {
     println!(
         "USAGE: {:}\n\nOPTIONS:\n{:#?}\n\nEXAMPLE:\n{:#?}",
