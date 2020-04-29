@@ -1,9 +1,9 @@
+//! Command line arg parsing module
 use crate::errors;
 use std::collections::HashMap;
 use std::env;
 use std::path::Path;
 
-/// All of the arguments which can be passed to memgram
 pub const GRAMMER_FILE_FLAG: &str = "-g";
 pub const CSTRUCT_FILE_FLAG: &str = "-c";
 pub const OUTPUT_FILE_FLAG: &str = "-o";
@@ -15,11 +15,12 @@ pub const DESCRIPTION_FLAG: &str = "-d";
 pub const HELP_FLAG: &str = "-h";
 
 /// Holds the state of all of the arguments passed to memgram.
+///
 /// At some point this will be replaced with the Clap crate: https://github.com/clap-rs/clap.
 pub struct CMDArgParse {
-    /// The raw cmdline args retrieved from env::args().collect().
+    /// Raw cmdline args retrieved from env::args().collect().
     raw_args: Vec<String>,
-    /// Holds a hashmap of the switch (-e,-d, etc) as the key and a Option<String> representing a value for the switch or no value.
+    /// Holds a HashMap of switches (-e,-d, etc) as the keys with an Option<String>'s representing the key values (e.g Some(gram.toml).
     pub arg_map: HashMap<String, Option<String>>,
     /// A filepath to the grammar file.
     pub grammer_filepath: String,
@@ -29,27 +30,35 @@ pub struct CMDArgParse {
     pub cstruct_filepath: String,
     /// A filepath for the output grammar file of the C struct conversion.
     pub output_filepath: String,
-    /// Offset into binary file where the data structure starts.
+    /// Offset into binary file where the data structure that gets formatted starts.
     pub struct_offset: u64,
     /// Determines whether the description table will be printed to stdout or not.
+    ///
     /// true = Print to stdout. This is set by specifying the switch as a CLI argument at runtime.
-    /// false = Do not print to stdout. This is the default state if the switch is not passed as an argument.
+    ///
+    /// false = Do not print to stdout. This is the state after new().
     pub description: bool,
     /// Determines whether the endianess of non memgram display types will be printed with reversed endianess in the output fmt table.
-    /// true = reverse the endianess.
-    /// false = Do not reverse the endianess.This is the default state if the switch is not passed as an argument.
+    ///
+    /// true = Reverse the endianess.
+    ///
+    /// false = Do not reverse the endianess. This is the state after new().
     pub fmt_endian: bool,
     /// Determines whether the endianess of non memgram display types will be printed with reversed endianess in the output hex view.
-    /// true = reverse the endianess.
-    /// false = Do not reverse the endianess.This is the default state if the switch is not passed as an argument.
+    ///
+    /// true = Reverse the endianess.
+    ///
+    /// false = Do not reverse the endianess. This is the state after new().
     pub hex_endian: bool,
     /// Determines whether memgram usage information will be printed to stdout.
-    /// true = print help information and quit.
-    /// false = Do not print help information and quit. This is the default state if the switch is not passed as an argument.
+    ///
+    /// true = Print usage information and quit.
+    ///
+    /// false = Do not print help information. This is the state after new().
     pub help_flag: bool,
 }
 
-/// memgram run options
+/// Memgram run options
 pub enum RunOptions {
     /// Convert the C struct file to a grammar file. Do not display output fmt table/hex view.
     CStructConvertWrite,
@@ -77,8 +86,11 @@ impl CMDArgParse {
     }
 
     /// Parses the cmdline arguments stored in self.raw_args into self.arg_map.
-    /// If a switch is supplied, e.g "-g" and no value, then the arg will be stored as "-g",None in HashMap.
-    /// If a switch is supplied, e.g "-g" and a value e.g "somegramfile.toml", then the argu will be stored as "-g",Some("somegramfile.toml") in HashMap.
+    ///
+    /// If a switch is supplied, e.g "-g" and no value, then the arg will be stored as "-g",None in self.arg_map.
+    ///
+    /// If a switch is supplied, e.g "-g" and a value e.g "somegramfile.toml", then the argu will be stored as "-g",Some("somegramfile.toml") in self.arg_map.
+    ///
     /// If no arguments are supplied, usage info is printed and Err(()) returned.
     pub fn parse_cmd_args(&mut self) -> Result<&mut Self, ()> {
         match self.raw_args.len() {
@@ -103,6 +115,7 @@ impl CMDArgParse {
     }
 
     /// Parses a single file arg into a &str and saves it in self.MATCHED_FILEPATH
+    ///
     /// An Err(()) is returned if the key-value pair are not both Some or the filepath does not exist on the OS (except for the OUTPUT_FILE_FLAG)
     pub fn parse_file_arg(&mut self, flag: &str) -> Result<&mut Self, ()> {
         let file_path = self
@@ -134,7 +147,9 @@ impl CMDArgParse {
     }
 
     /// Parses a single offset flag into u64 and saves result in self.struct_offset.
+    ///
     /// An Err(()) is returned if the offset could not be coverted into a u64.
+    ///
     /// If an offset is not found in self.arg_map, self.struct_offset is set to 0.
     pub fn parse_offset_flag(&mut self, offset_flag: &str) -> Result<&mut Self, ()> {
         if self.arg_map.contains_key(offset_flag) {
@@ -190,7 +205,9 @@ impl CMDArgParse {
     }
 
     /// Used to determine which methods to run in main.rs.
+    ///
     /// Returns a RunOption variant depending on which switches/flags were passed on the cmdline.
+    ///
     /// Descriptions of each variant are contained in the RunOption enum documentation
     pub fn run_cmds(&mut self) -> Result<RunOptions, ()> {
         if !self.arg_map.contains_key(CSTRUCT_FILE_FLAG)
