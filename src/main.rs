@@ -4,6 +4,7 @@ mod arg_parse;
 mod gram_parse;
 mod hex_display;
 mod struct_convert;
+mod table_display;
 use std::fs;
 
 #[macro_use]
@@ -62,13 +63,13 @@ fn run() -> Result<(), ()> {
 
                 parsed_gram.parse_toml(&c_struct.grammar_contents)?;
 
-                let mut table_data = gram_parse::TableData::new();
+                let mut table_data = table_display::TableData::new();
 
                 table_data
                     .create_field_hashmap(&mut parsed_gram, &cmd_args)?
                     .format_fields(&parsed_gram, cmd_args.fmt_endian)?
                     .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
-                    .print_table(gram_parse::Tables::Standard);
+                    .print_table(table_display::Tables::Standard);
 
                 hex_display::print_hex_table(
                     &parsed_gram,
@@ -102,19 +103,19 @@ fn run() -> Result<(), ()> {
 
                 parsed_gram.parse_toml(&file_contents)?.post_parse_toml()?;
 
-                let mut table_data = gram_parse::TableData::new();
+                let mut table_data = table_display::TableData::new();
 
                 if cmd_args.description {
                     table_data
                         .fill_description_table(&parsed_gram)
-                        .print_table(gram_parse::Tables::Description)
+                        .print_table(table_display::Tables::Description)
                 }
 
                 table_data
                     .create_field_hashmap(&mut parsed_gram, &cmd_args)?
                     .format_fields(&parsed_gram, cmd_args.fmt_endian)?
                     .fill_standard_table(&parsed_gram, cmd_args.struct_offset as usize)?
-                    .print_table(gram_parse::Tables::Standard);
+                    .print_table(table_display::Tables::Standard);
 
                 hex_display::print_hex_table(
                     &parsed_gram,
