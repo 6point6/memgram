@@ -279,6 +279,7 @@ fn get_var_arithmetic_operator(arithmetic_op_str: &str) -> Result<ArithmeticOper
     }
 }
 
+///
 #[derive(Debug)]
 pub struct VariableSizeEntry {
     pub source_field_name: String,
@@ -318,6 +319,7 @@ impl VariableSizeEntry {
         }
     }
 
+    /// Performs arithmetic operation on variable size field yielding the result
     pub fn calculate_variable_size(&mut self) -> usize {
         match self.arithemitc_order {
             VariableSizeArithmeticOrder::Unset => self.source_field_real_size,
@@ -381,13 +383,18 @@ impl VariableSizeEntry {
     }
 }
 
+/// Specifys the arithmetic order of the variable_size_fields entry in metadata.
 #[derive(Debug)]
 pub enum VariableSizeArithmeticOrder {
+    /// The aritmetic order is forwards (number [+,-,*,/] variable size field).
     Forwards,
+    /// The aritmetic order is backwards (variable size field) [+,-,*,/ ] number).
     Backwards,
+    /// There is no arithmetic operation to be performed.
     Unset,
 }
 
+/// Abstraction for aritmetic operators.
 #[derive(Debug)]
 pub enum ArithmeticOperators {
     Addition,
@@ -396,9 +403,13 @@ pub enum ArithmeticOperators {
     Division,
 }
 
+/// Holds data needed to multiply a field.
 pub struct FieldMultiply {
+    /// Name of field to be multiplied.
     pub field_name: String,
+    /// The index/offset into the file the field occurs at.
     pub field_index: usize,
+    /// How many times the field should be multiplied.
     pub multiplier: i32,
 }
 
