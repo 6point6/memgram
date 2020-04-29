@@ -1,5 +1,4 @@
-use crate::file_parse;
-use std::fs::File;
+use std::fs;
 use std::io::prelude::*;
 
 pub struct CStruct {
@@ -21,7 +20,12 @@ impl CStruct {
         let mut prev_index: usize = 0;
         let mut next_index: usize = 0;
 
-        let struct_string: String = file_parse::read_file(struct_filepath)?;
+        let struct_string: String = fs::read_to_string(struct_filepath).map_err(|e| {
+            serror!(format!(
+                "Error opening file: {}, because:{}",
+                struct_filepath, e
+            ))
+        })?;
 
         prev_index += match struct_string[prev_index..].find("struct ") {
             Some(matched_index) => matched_index + 7,
@@ -109,7 +113,7 @@ impl CStruct {
     }
 
     pub fn write_toml_file(&mut self, output_path: &str) -> Result<&mut Self, ()> {
-        let mut grammer_file = match File::create(output_path) {
+        let mut grammer_file = match fs::File::create(output_path) {
             Ok(f) => f,
             Err(e) => {
                 serror!(format!(
