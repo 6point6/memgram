@@ -1,7 +1,9 @@
+//! Module for printing a colored hextable
 use crate::gram_parse;
 use hexplay::HexViewBuilder;
 use std::collections::HashMap;
 
+/// Prints a colored hextable containing data extracted from a binary file based on the grammar file definition
 pub fn print_hex_table(
     parsed_gram: &gram_parse::Grammar,
     field_hashmap: &HashMap<String, Vec<u8>>,
