@@ -23,7 +23,7 @@ pub struct CMDArgParse {
     /// Holds a HashMap of switches (-e,-d, etc) as the keys with an Option<String>'s representing the key values (e.g Some(gram.toml).
     pub arg_map: HashMap<String, Option<String>>,
     /// A filepath to the grammar file.
-    pub grammer_filepath: String,
+    pub grammar_filepath: String,
     /// A filepath to the binary file.
     pub binary_filepath: String,
     /// A filepath to the C struct file.
@@ -73,7 +73,7 @@ impl CMDArgParse {
         Self {
             raw_args: env::args().collect(),
             arg_map: HashMap::new(),
-            grammer_filepath: String::from(""),
+            grammar_filepath: String::from(""),
             binary_filepath: String::from(""),
             cstruct_filepath: String::from(""),
             output_filepath: String::from(""),
@@ -130,7 +130,7 @@ impl CMDArgParse {
 
         if Path::new(&file_path).exists() || flag == OUTPUT_FILE_FLAG {
             match flag {
-                GRAMMER_FILE_FLAG => self.grammer_filepath = file_path,
+                GRAMMER_FILE_FLAG => self.grammar_filepath = file_path,
                 BINARY_FILE_FLAG => self.binary_filepath = file_path,
                 CSTRUCT_FILE_FLAG => self.cstruct_filepath = file_path,
                 OUTPUT_FILE_FLAG => self.output_filepath = file_path,

@@ -92,12 +92,12 @@ fn run() -> Result<(), ()> {
 
                 let mut file_contents = file_parse::FileData::new();
 
-                file_contents.read_grammer(&cmd_args.grammer_filepath)?;
+                file_contents.read_grammar(&cmd_args.grammar_filepath)?;
 
                 let mut parsed_gram = gram_parse::Grammar::new();
 
                 parsed_gram
-                    .parse_toml(&file_contents.grammer_contents)?
+                    .parse_toml(&file_contents.grammar_contents)?
                     .post_parse_toml()?;
 
                 let mut table_data = gram_parse::TableData::new();
