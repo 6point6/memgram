@@ -39,7 +39,7 @@ Currently supported types:
 * ipv4le - Display data in IPv4 little endian format
 * utf16be - Display data in UTF16 big endian format
 * utf16le - Display data in UTF16 little endian format
-* x86_32 - Display x86_32 assembly format)
+* x86_32 - Display x86_32 assembly format
 
 If a display type not listed above is used, `memgram` will default to formating data as a hex string in native endianess. The endianess of this default format can be changed without affecting the supported display types in both the table and hex views when using the `-e` and `-E` flags respectively.
 

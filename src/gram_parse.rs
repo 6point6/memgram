@@ -1,26 +1,40 @@
+//! Module that deals with parsing a grammar file into a Grammar data structure
 use serde::Deserialize;
 use serde::Serialize;
 use std::convert::TryInto;
 
+/// Parent structure which holds the metadata and fields of the grammar
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Grammar {
+    /// Holds metadata ([metadata) portion of the grammar file.
     pub metadata: GrammerMetadata,
+    /// Each GrammarField entry corrosponds to a [[fields]] entry in the grammar file.
     pub fields: Vec<GrammerFields>,
 }
 
+/// Holds metadata ([metadata) portion of the grammar file.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerMetadata {
+    /// The name of the data structure.
     pub name: String,
+    /// Specifies which fields if any are variable sized.
     pub variable_size_fields: Vec<(String, String, String, String)>,
+    /// Specifies which fields if any should be multiplied/repeated.
     pub multiply_fields: Vec<(String, String)>,
 }
 
+/// Each GrammarField entry corrosponds to a [[fields]] entry in the grammar file.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerFields {
+    /// The name of the field.
     pub name: String,
+    /// How large the field is in bytes.
     pub size: usize,
+    /// The data type of the field.
     pub data_type: String,
+    /// The display format of the field.
     pub display_format: String,
+    /// The description of the field.
     pub description: String,
 }
 
@@ -42,6 +56,7 @@ impl Grammar {
         }
     }
 
+    /// Parses the contents of a grammar into the Grammer structure.
     pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Self, ()> {
         match toml::from_str::<Self>(file_contents) {
             Ok(gram) => {
@@ -56,6 +71,7 @@ impl Grammar {
         Ok(self)
     }
 
+    /// Get's the total size in bytes of all the fields in the grammer file.
     pub fn get_struct_size(&self) -> usize {
         let mut struct_size: usize = 0;
 
@@ -66,6 +82,9 @@ impl Grammar {
         struct_size
     }
 
+    /// Further parses the grammar in the Grammar structure.
+    ///
+    /// multiply_fields is run here if mulitplying fields was specified in the grammar file.
     pub fn post_parse_toml(&mut self) -> Result<&mut Self, ()> {
         if !self.metadata.multiply_fields[0].0.is_empty()
             && !self.metadata.multiply_fields[0].1.is_empty()
@@ -76,15 +95,7 @@ impl Grammar {
         Ok(self)
     }
 
-    // fn add_field_id(&mut self) {
-    //     let mut field_id: u32 = 0;
-
-    //     for field in &mut self.fields {
-    //         field.name.push_str(&format!("{:03X}", field_id)[..]);
-    //         field_id += 1;
-    //     }
-    // }
-
+    /// Populates a Vec<VariableSizeEntry>.
     pub fn create_var_size_entry_vector(
         &mut self,
         var_size_entry_vec: &mut Vec<VariableSizeEntry>,
@@ -200,6 +211,7 @@ impl Grammar {
         Ok(())
     }
 
+    /// Mulitplies (copys) a field of the grammar by the number of times specified in the grammar file.
     fn multiply_fields(&mut self) -> Result<(), ()> {
         for entry in self.metadata.multiply_fields.iter() {
             let mut field_multiply = FieldMultiply::new();
@@ -262,6 +274,7 @@ impl Grammar {
     }
 }
 
+/// Matches an arthmetic operator in char format (+,-,*,/) with one of the ArithmeticOperator enum variants.
 fn get_var_arithmetic_operator(arithmetic_op_str: &str) -> Result<ArithmeticOperators, ()> {
     if arithmetic_op_str.len() > 1 {
         serror!(format!("Invalid arithmetic operator legnth: {} for variable size fields: {}, must be one of the following (+, -, *, /)", arithmetic_op_str.len(),arithmetic_op_str));
@@ -279,17 +292,26 @@ fn get_var_arithmetic_operator(arithmetic_op_str: &str) -> Result<ArithmeticOper
     }
 }
 
-///
+/// Holds of the information relating to a variable size entry.
 #[derive(Debug)]
 pub struct VariableSizeEntry {
+    /// The name of the field used as a source for the variable sized field.
     pub source_field_name: String,
+    /// Index of source field in Grammar.fields.
     pub source_field_index: usize,
+    /// The interger value of the data stored at the source field.
     pub source_field_real_size: usize,
+    /// The display_format of the source field.
     pub source_field_display: String,
+    /// The name of the variable sized field.
     pub var_field_name: String,
+    /// The options for the variable sized field.
     pub variable_options: VariableOptions,
+    /// The order of arthimetic operations on the source field real size.
     pub arithemitc_order: VariableSizeArithmeticOrder,
+    /// The type of arthimetic operation to perform (Addition, Subtraction, Multiplication, Division).
     pub arithmetic_operator: ArithmeticOperators,
+    /// The adjustment in the arithmetic operation.
     pub adjustment: usize,
 }
 

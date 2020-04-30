@@ -3,12 +3,19 @@ use iced_x86::{Decoder, DecoderOptions, Formatter, Instruction, NasmFormatter};
 use std::net::{IpAddr, Ipv4Addr};
 use widestring::U16CString;
 
+/// Display data in little endian hex string format
 pub const HEXLE_TYPE: &str = "hexle";
+/// Display data in ASCII format
 pub const ASCII_TYPE: &str = "ascii";
+/// Display data in IPv4 big endian format
 pub const IPV4BE_TYPE: &str = "ipv4be";
+/// Display data in IPv4 little endian format
 pub const IPV4LE_TYPE: &str = "ipv4le";
+/// Display data in UTF16 little endian format
 pub const UTF16LE_TYPE: &str = "utf16be";
+/// Display data in UTF16  big endian format
 pub const UTF16BE_TYPE: &str = "utf16le";
+/// Display x86_32 assembly format
 pub const X86_TYPE: &str = "x86_32";
 
 /// Converts a 4 byte u8 array into a ipv4 string

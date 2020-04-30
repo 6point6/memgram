@@ -1,3 +1,6 @@
+//! memgram has been developed to aid with reverse engineering unknown file formats and memory structures.
+//! Custom data structures found when reverse engineering can be quickly described in an easily readable TOML compliant format called a grammar.
+//! memgram reads a file containing a custom data structure, applies a grammar and displays formatted prettified output of data.
 #[macro_use]
 mod errors;
 mod arg_parse;
