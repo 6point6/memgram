@@ -1,21 +1,21 @@
-//! Module that deals with converting raw u8 arrays into formatted strings. e.g utf16 byte array to utf16 string
+//! Module that deals with converting raw u8 arrays into formatted strings. e.g utf16 byte array to utf16 string.
 use iced_x86::{Decoder, DecoderOptions, Formatter, Instruction, NasmFormatter};
 use std::net::{IpAddr, Ipv4Addr};
 use widestring::U16CString;
 
-/// Display data in little endian hex string format
+/// Display data in little endian hex string format.
 pub const HEXLE_TYPE: &str = "hexle";
-/// Display data in ASCII format
+/// Display data in ASCII format.
 pub const ASCII_TYPE: &str = "ascii";
-/// Display data in IPv4 big endian format
+/// Display data in IPv4 big endian format.
 pub const IPV4BE_TYPE: &str = "ipv4be";
-/// Display data in IPv4 little endian format
+/// Display data in IPv4 little endian format.
 pub const IPV4LE_TYPE: &str = "ipv4le";
-/// Display data in UTF16 little endian format
+/// Display data in UTF16 little endian format.
 pub const UTF16LE_TYPE: &str = "utf16be";
-/// Display data in UTF16  big endian format
+/// Display data in UTF16  big endian format.
 pub const UTF16BE_TYPE: &str = "utf16le";
-/// Display x86_32 assembly format
+/// Display x86_32 assembly format.
 pub const X86_TYPE: &str = "x86_32";
 
 /// Converts a 4 byte u8 array into a ipv4 string
@@ -37,11 +37,11 @@ pub fn ipv4_string(ipv4_bytes: &[u8]) -> Result<String, ()> {
     }
 }
 
-/// Converts a utf16 bytes array into a utf16 string.
+/// Converts a utf16 byte array into a utf16 string.
 ///
 /// If little_endian is set to true, the utf16 byte array will be converted to a utf16_le string.
 ///
-/// If little endian is set to false, the utf16 byte array will be converted to a utf16_
+/// If little endian is set to false, the utf16 byte array will be converted to a utf16_be string.
 pub fn utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String, ()> {
     let raw_iter = utf16_bytes.chunks_exact(2);
 
@@ -72,7 +72,7 @@ pub fn utf16_string(utf16_bytes: &[u8], little_endian: bool) -> Result<String, (
     }
 }
 
-/// Holds the outputted Assembly as well as the line count
+/// Holds the outputted assembly as well as the line count.
 pub struct DissassOutput {
     pub output: String,
     pub line_count: u32,
@@ -86,7 +86,7 @@ impl DissassOutput {
         }
     }
 
-    /// Converts u8 array into x86 assembly string and populates self.output and self.line_count
+    /// Converts u8 array into x86 assembly string and populates `self.output` and `self.line_count`.
     pub fn format_x86(&mut self, bitness: u32, machine_code: &[u8]) {
         let mut decoder = Decoder::new(bitness, machine_code, DecoderOptions::NONE);
         let mut formatter = NasmFormatter::new();

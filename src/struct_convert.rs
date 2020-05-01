@@ -1,13 +1,14 @@
+//! Module for converting a C struct to the grammar format.
 use std::fs;
 use std::io::prelude::*;
 
-/// Holds the contents of the parsed C struct fields and converted grammar contents
+/// Holds the contents of the parsed C struct fields and converted grammar contents.
 pub struct CStruct {
-    /// Name of the C struct (Also name of grammar)
+    /// Name of the C struct (Also name of grammar).
     pub name: String,
-    /// Vector of (C type, field_name) created by parse_c_Struct
+    /// Vector of (C type, field_name) created by `parse_c_struct`.
     pub fields: Vec<(String, String)>,
-    /// String containing the resulting grammar contents
+    /// String containing the resulting grammar contents.
     pub grammar_contents: String,
 }
 
@@ -20,9 +21,9 @@ impl CStruct {
         }
     }
 
-    /// Parses the contents of a file containing a C struct
+    /// Parses the contents of a file containing a C struct.
     ///
-    /// A Vector of (String, String) is built in self.fields in the format (c type, field_name)
+    /// A `Vector` of `(String, String)` is built in `self.fields` in the format (c type, field_name)
     pub fn parse_c_struct(&mut self, struct_filepath: &str) -> Result<&mut Self, ()> {
         let mut prev_index: usize = 0;
         let mut next_index: usize = 0;
@@ -96,7 +97,7 @@ impl CStruct {
         Ok(self)
     }
 
-    /// Builds the contents of the output grammar file line by line by pushing data to self.grammar_contents
+    /// Builds the contents of the output grammar file line by line.
     pub fn build_grammar_contents(&mut self) -> Result<&mut Self, ()> {
         self.grammar_contents.push_str("[metadata]\r\n");
         self.grammar_contents
@@ -121,7 +122,7 @@ impl CStruct {
         Ok(self)
     }
 
-    /// Writes the newly created grammar contents in self.grammar_contents to a toml file specified by output_path
+    /// Writes the newly created grammar contents in `self.grammar_contents` to a toml file specified by `output_path`.
     pub fn write_grammar_file(&mut self, output_path: &str) -> Result<&mut Self, ()> {
         let mut grammer_file = match fs::File::create(output_path) {
             Ok(f) => f,
@@ -153,7 +154,7 @@ impl CStruct {
     }
 }
 
-/// Get's the field size based on the C basic type
+/// Get's the field size based on the C basic type.
 ///
 /// This assumes that a char is 1 byte and an int is 4 bytes etc.
 /// This may not allways be the case!

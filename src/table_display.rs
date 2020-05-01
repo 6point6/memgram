@@ -22,9 +22,9 @@ pub struct TableData {
 
 /// Used to specify which table should be printed.
 pub enum Tables {
-    /// Symbolizes the standard_table containing all the formatted data, offsets, field names etc...
+    /// Symbolizes the `standard_table` containing all the formatted data, offsets, field names etc...
     Standard,
-    /// Symbolizes the description_table containing the name and description of each field.
+    /// Symbolizes the `description_table` containing the name and description of each field.
     Description,
 }
 
@@ -47,7 +47,7 @@ impl TableData {
         };
     }
 
-    /// Fills self.standard_table with all of the formatted data extracted from a binary file.
+    /// Fills `self.standard_table` with all of the formatted data extracted from a binary file.
     ///
     /// Note: The description row is not created
     pub fn fill_standard_table(
@@ -90,7 +90,7 @@ impl TableData {
         Ok(self)
     }
 
-    /// Fills self.description_table with all of the formatted data extracted from a binary file.
+    /// Fills `self.description_table` with all of the formatted data extracted from a binary file.
     ///
     /// Note: No formatted data rows are created.
     pub fn fill_description_table(&mut self, parsed_gram: &gram_parse::Grammar) -> &mut Self {
@@ -111,9 +111,9 @@ impl TableData {
         self
     }
 
-    /// Populates self.field_hashmap with variable sized value entries.
+    /// Populates `self.field_hashmap` with variable sized value entries.
     ///
-    /// This is run when the variable_size_fields field in the grammar is populated.
+    /// This is run when the `variable_size_fields` field in the grammar is populated.
     pub fn create_var_sized_field_hashmap(
         &mut self,
         parsed_gram: &mut gram_parse::Grammar,
@@ -209,7 +209,7 @@ impl TableData {
         Ok(())
     }
 
-    /// Deals with creating either a fixed field size or variable field sized self.field_hashmap.
+    /// Deals with creating either a fixed field size or variable field sized `self.field_hashmap`.
     pub fn create_field_hashmap(
         &mut self,
         parsed_gram: &mut gram_parse::Grammar,
@@ -255,13 +255,13 @@ impl TableData {
         Ok(self)
     }
 
-    /// Formats/Converts raw data extracted from the binary and stored in self.field_hashmap into self.field_fmt_hashmap.
+    /// Formats/Converts raw data extracted from the binary and stored in `self.field_hashmap` into `self.field_fmt_hashmap`.
     ///
-    /// The data is converted based on the display_format specified for each field in the grammar file.
-    /// If a unknown display_format is specified, the data will be formatted as a hex string. The data formatted here is
+    /// The data is converted based on the `display_format` specified for each field in the grammar file.
+    /// If a unknown `display_format` is specified, the data will be formatted as a hex string. The data formatted here is
     /// what ultimately gets printed in the "Formatted Data" row of the output table.
     ///
-    /// The endianess of the formatted data is determined by the display_type or by the fmt_endian_flag.
+    /// The endianess of the formatted data is determined by the `display_type` or by the `fmt_endian_flag`.
     pub fn format_fields(
         &mut self,
         parsed_gram: &gram_parse::Grammar,

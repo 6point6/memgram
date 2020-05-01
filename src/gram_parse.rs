@@ -1,9 +1,9 @@
-//! Module that deals with parsing a grammar file into a Grammar data structure
+//! Module that deals with parsing a grammar file into a `Grammar` data structure.
 use serde::Deserialize;
 use serde::Serialize;
 use std::convert::TryInto;
 
-/// Parent structure which holds the metadata and fields of the grammar
+/// Parent structure which holds the metadata and fields of the grammar.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Grammar {
     /// Holds metadata ([metadata) portion of the grammar file.
@@ -12,7 +12,7 @@ pub struct Grammar {
     pub fields: Vec<GrammerFields>,
 }
 
-/// Holds metadata ([metadata) portion of the grammar file.
+/// Holds metadata (`[metadata]`) portion of the grammar file.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerMetadata {
     /// The name of the data structure.
@@ -23,7 +23,7 @@ pub struct GrammerMetadata {
     pub multiply_fields: Vec<(String, String)>,
 }
 
-/// Each GrammarField entry corrosponds to a [[fields]] entry in the grammar file.
+/// Each `GrammarField` entry corrosponds to a `[[fields]]` entry in the grammar file.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GrammerFields {
     /// The name of the field.
@@ -56,7 +56,7 @@ impl Grammar {
         }
     }
 
-    /// Parses the contents of a grammar into the Grammer structure.
+    /// Parses the contents of a grammar into the `Grammer` structure.
     pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Self, ()> {
         match toml::from_str::<Self>(file_contents) {
             Ok(gram) => {
@@ -84,7 +84,7 @@ impl Grammar {
 
     /// Further parses the grammar in the Grammar structure.
     ///
-    /// multiply_fields is run here if mulitplying fields was specified in the grammar file.
+    /// `multiply_fields` is run here if mulitplying fields was specified in the grammar file.
     pub fn post_parse_toml(&mut self) -> Result<&mut Self, ()> {
         if !self.metadata.multiply_fields[0].0.is_empty()
             && !self.metadata.multiply_fields[0].1.is_empty()
@@ -95,7 +95,7 @@ impl Grammar {
         Ok(self)
     }
 
-    /// Populates a Vec<VariableSizeEntry>.
+    /// Populates a `Vec<VariableSizeEntry>`.
     pub fn create_var_size_entry_vector(
         &mut self,
         var_size_entry_vec: &mut Vec<VariableSizeEntry>,
@@ -211,7 +211,7 @@ impl Grammar {
         Ok(())
     }
 
-    /// Mulitplies (copys) a field of the grammar by the number of times specified in the grammar file.
+    /// Multiplies (copys) a field of the grammar by the number of times specified in the grammar file.
     fn multiply_fields(&mut self) -> Result<(), ()> {
         for entry in self.metadata.multiply_fields.iter() {
             let mut field_multiply = FieldMultiply::new();
@@ -274,7 +274,7 @@ impl Grammar {
     }
 }
 
-/// Matches an arthmetic operator in char format (+,-,*,/) with one of the ArithmeticOperator enum variants.
+/// Matches an arthmetic operator in char format (+,-,*,/) with one of the `ArithmeticOperator` enum variants.
 fn get_var_arithmetic_operator(arithmetic_op_str: &str) -> Result<ArithmeticOperators, ()> {
     if arithmetic_op_str.len() > 1 {
         serror!(format!("Invalid arithmetic operator legnth: {} for variable size fields: {}, must be one of the following (+, -, *, /)", arithmetic_op_str.len(),arithmetic_op_str));
@@ -341,7 +341,7 @@ impl VariableSizeEntry {
         }
     }
 
-    /// Performs arithmetic operation on variable size field yielding the result
+    /// Performs an arithmetic operation on variable size field yielding the result.
     pub fn calculate_variable_size(&mut self) -> usize {
         match self.arithemitc_order {
             VariableSizeArithmeticOrder::Unset => self.source_field_real_size,
@@ -405,7 +405,7 @@ impl VariableSizeEntry {
     }
 }
 
-/// Specifys the arithmetic order of the variable_size_fields entry in metadata.
+/// Specifys the arithmetic order of the `variable_size_fields entry` in metadata.
 #[derive(Debug)]
 pub enum VariableSizeArithmeticOrder {
     /// The aritmetic order is forwards (number [+,-,*,/] variable size field).
