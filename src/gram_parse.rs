@@ -7,14 +7,14 @@ use std::convert::TryInto;
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Grammar {
     /// Holds metadata ([metadata) portion of the grammar file.
-    pub metadata: GrammerMetadata,
+    pub metadata: GrammarMetadata,
     /// Each GrammarField entry corrosponds to a [[fields]] entry in the grammar file.
-    pub fields: Vec<GrammerFields>,
+    pub fields: Vec<GrammarFields>,
 }
 
 /// Holds metadata (`[metadata]`) portion of the grammar file.
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct GrammerMetadata {
+pub struct GrammarMetadata {
     /// The name of the data structure.
     pub name: String,
     /// Specifies which fields if any are variable sized.
@@ -25,7 +25,7 @@ pub struct GrammerMetadata {
 
 /// Each `GrammarField` entry corrosponds to a `[[fields]]` entry in the grammar file.
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct GrammerFields {
+pub struct GrammarFields {
     /// The name of the field.
     pub name: String,
     /// How large the field is in bytes.
@@ -38,9 +38,9 @@ pub struct GrammerFields {
     pub description: String,
 }
 
-impl GrammerMetadata {
-    pub fn new() -> GrammerMetadata {
-        GrammerMetadata {
+impl GrammarMetadata {
+    pub fn new() -> GrammarMetadata {
+        GrammarMetadata {
             name: String::from(""),
             variable_size_fields: Vec::new(),
             multiply_fields: Vec::new(),
@@ -51,12 +51,12 @@ impl GrammerMetadata {
 impl Grammar {
     pub fn new() -> Self {
         Self {
-            metadata: GrammerMetadata::new(),
+            metadata: GrammarMetadata::new(),
             fields: Vec::new(),
         }
     }
 
-    /// Parses the contents of a grammar into the `Grammer` structure.
+    /// Parses the contents of a grammar into the `Grammar` structure.
     pub fn parse_toml(&mut self, file_contents: &str) -> Result<&mut Self, ()> {
         match toml::from_str::<Self>(file_contents) {
             Ok(gram) => {
