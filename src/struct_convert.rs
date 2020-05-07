@@ -124,7 +124,7 @@ impl CStruct {
 
     /// Writes the newly created grammar contents in `self.grammar_contents` to a toml file specified by `output_path`.
     pub fn write_grammar_file(&mut self, output_path: &str) -> Result<&mut Self, ()> {
-        let mut grammer_file = match fs::File::create(output_path) {
+        let mut grammar_file = match fs::File::create(output_path) {
             Ok(f) => f,
             Err(e) => {
                 serror!(format!(
@@ -135,7 +135,7 @@ impl CStruct {
             }
         };
 
-        match grammer_file.write_all(self.grammar_contents.as_bytes()) {
+        match grammar_file.write_all(self.grammar_contents.as_bytes()) {
             Ok(_) => {
                 println!(
                     "[+] Successfully converted C struct {} to grammar file {}",

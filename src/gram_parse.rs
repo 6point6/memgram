@@ -71,7 +71,7 @@ impl Grammar {
         Ok(self)
     }
 
-    /// Get's the total size in bytes of all the fields in the grammer file.
+    /// Get's the total size in bytes of all the fields in the grammar file.
     pub fn get_struct_size(&self) -> usize {
         let mut struct_size: usize = 0;
 
